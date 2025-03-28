@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import sch.travellocal.auth.oauth.CustomOauth2UserService;
+import sch.travellocal.auth.oauth.CustomSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -15,6 +16,7 @@ import sch.travellocal.auth.oauth.CustomOauth2UserService;
 public class SecurityConfig {
 
     private final CustomOauth2UserService customOauth2UserService;
+    private final CustomSuccessHandler customSuccessHandler;
 
 
     @Bean
@@ -31,6 +33,7 @@ public class SecurityConfig {
         http.oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                         .userService(customOauth2UserService))
+                .successHandler(customSuccessHandler)
         );
 
         http.authorizeHttpRequests(auth -> auth
