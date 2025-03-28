@@ -1,9 +1,7 @@
 package sch.travellocal.domain.user.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import sch.travellocal.domain.user.enums.UserRole;
@@ -13,12 +11,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user")
 @NoArgsConstructor
+@Getter
+@Setter
 public class User {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
