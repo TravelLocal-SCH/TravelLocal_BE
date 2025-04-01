@@ -4,18 +4,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import sch.travellocal.common.entity.BaseTimeEntity;
 import sch.travellocal.domain.user.entity.User;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tour_program")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TourProgram {
+public class TourProgram extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,14 +24,6 @@ public class TourProgram {
 
     @Column(name = "guide_price", nullable = false)
     private int guidePrice;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false, insertable = false)
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
