@@ -10,11 +10,11 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import sch.travellocal.auth.util.CookieUtil;
 import sch.travellocal.auth.util.JwtUtil;
+import sch.travellocal.auth.util.RefreshTokenHelper;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @AllArgsConstructor
@@ -23,6 +23,9 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final JwtUtil jwtUtil;
     private final CookieUtil cookieUtil;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RefreshTokenHelper refreshTokenHelper;
+    private final long ACCESS_TOKEN_TTL = 10 * 60;
+    private final long REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, SecurityException {
@@ -36,21 +39,13 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority authority = iterator.next();
         String role = authority.getAuthority();
 
-        String accessToken = jwtUtil.createJwt("access", username, role, 10 * 60L);
-        String refreshToken = jwtUtil.createJwt("refresh", username, role, 36 * 60 * 60L);
+        String accessToken = jwtUtil.createJwt("access", username, role, ACCESS_TOKEN_TTL);
+        String refreshToken = jwtUtil.createJwt("refresh", username, role, REFRESH_TOKEN_TTL);
 
-        saveRefreshEntity(username, refreshToken);
+        refreshTokenHelper.saveRefreshToken(refreshToken);
 
         response.setHeader("Authorization", "Bearer " + accessToken);
-        response.addCookie(cookieUtil.createCookie("refresh", refreshToken, 36 * 60 * 60));
+        response.addCookie(cookieUtil.createCookie("refresh", refreshToken, (int) REFRESH_TOKEN_TTL));
         response.sendRedirect("http://localhost:3000/");
-    }
-
-    private void saveRefreshEntity(String username, String refreshToken) {
-
-        String redisKey = "refresh_token:" + username;
-
-        redisTemplate.opsForHash().put(redisKey, "refresh_token", refreshToken);
-        redisTemplate.expire(redisKey, 36 * 60 * 60, TimeUnit.SECONDS);
     }
 }
