@@ -8,7 +8,7 @@ import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
-import sch.travellocal.common.exception.custom.UnauthorizedException;
+import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
 
 import javax.crypto.SecretKey;
@@ -57,6 +57,10 @@ public class JwtUtil {
                 .compact();
     }
 
+    public long getExpiration(String refreshToken) {
+        return getClaims(refreshToken).getExpiration().getTime();
+    }
+
     public void validateToken(String token) {
         try {
             getClaims(token);
@@ -66,25 +70,26 @@ public class JwtUtil {
 
             if (category == null || (!category.equals("access") && !category.equals("refresh"))) {
                 System.out.println("Expired JWT token2");
-                throw new UnauthorizedException(ErrorCode.INVALID_TOKEN_CATEGORY);
+                throw new AuthException(ErrorCode.INVALID_TOKEN_CATEGORY);
             }
             System.out.println("Expired JWT token3");
-            throw category.equals("access") ? new UnauthorizedException(ErrorCode.ACCESS_TOKEN_EXPIRED) : new UnauthorizedException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+            throw category.equals("access") ? new AuthException(ErrorCode.ACCESS_TOKEN_EXPIRED) : new AuthException(ErrorCode.REFRESH_TOKEN_EXPIRED);
         } catch (MalformedJwtException e) {
             System.out.println("Malformed JWT token");
-            throw new UnauthorizedException(ErrorCode.JWT_MALFORMED);
+            throw new AuthException(ErrorCode.JWT_MALFORMED);
         } catch (SignatureException e) {
             System.out.println("Invalid JWT token");
-            throw new UnauthorizedException(ErrorCode.JWT_SIGNATURE_INVALID);
+            throw new AuthException(ErrorCode.JWT_SIGNATURE_INVALID);
         } catch (AuthenticationException e) {
             System.out.println("Invalid JWT token AuthenticationException");
-            throw new UnauthorizedException(ErrorCode.UNAUTHORIZED);
+            throw new AuthException(ErrorCode.UNAUTHORIZED);
         } catch (IllegalArgumentException e) {
             System.out.println("JWT token not provided");
-            throw new UnauthorizedException(ErrorCode.TOKEN_NOT_PROVIDED);
+            throw new AuthException(ErrorCode.TOKEN_NOT_PROVIDED);
         } catch (Exception e) {
             System.out.println("JWT token error");
-            throw new UnauthorizedException(ErrorCode.INTERNAL_SERVER_ERROR);
+            throw new AuthException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
     }
+
 }
