@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import sch.travellocal.auth.dto.NaverResponse;
 import sch.travellocal.auth.dto.OAuth2Response;
-import sch.travellocal.common.exception.custom.UnauthorizedException;
+import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.user.dto.UserDTO;
 import sch.travellocal.domain.user.entity.User;
@@ -32,7 +32,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         OAuth2Response oAuth2Response = resolveOAuth2Response(registrationId, oAuth2User);
 
         if (oAuth2Response == null) {
-            throw new UnauthorizedException(ErrorCode.UNSUPPORTED_PROVIDER);
+            throw new AuthException(ErrorCode.UNSUPPORTED_PROVIDER);
         }
 
         String username = oAuth2Response.getProvider() + "_" + oAuth2Response.getProviderId();
