@@ -18,4 +18,10 @@ public class TravelMbtiController {
 
         return travelMbtiService.saveTravelMbti(travelMbtiDTO);
     }
+
+    @GetMapping("/my")
+    public ResponseEntity<?> getAllTravelMbti() {
+
+        return travelMbtiService.getAllTravelMbti();
+    }
 }
