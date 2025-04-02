@@ -13,7 +13,7 @@ public class TravelMbtiController {
 
     private final TravelMbtiService travelMbtiService;
 
-    @PostMapping
+    @PostMapping("/mbti")
     public ResponseEntity<?> saveTravelMbti(@RequestBody TravelMbtiDTO travelMbtiDTO) {
 
         return travelMbtiService.saveTravelMbti(travelMbtiDTO);
@@ -29,5 +29,11 @@ public class TravelMbtiController {
     public ResponseEntity<?> getDetailTravelMbti(@RequestParam("mbtiId") Long mbtiId, @RequestParam("mbti") String mbti) {
 
         return travelMbtiService.getDetailTravelMbti(mbtiId, mbti);
+    }
+
+    @DeleteMapping("/mbti")
+    public ResponseEntity<?> deleteTravelMbti(@RequestParam("mbtiId") Long mbtiId, @RequestParam("mbti") String mbti) {
+
+        return travelMbtiService.deleteTravelMbti(mbtiId, mbti);
     }
 }

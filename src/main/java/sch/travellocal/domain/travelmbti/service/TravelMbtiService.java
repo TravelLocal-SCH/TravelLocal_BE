@@ -66,6 +66,7 @@ public class TravelMbtiService {
         return ResponseEntity.ok(SuccessResponse.ok("success save"));
     }
 
+    @Transactional
     public ResponseEntity<?> getAllTravelMbti() {
 
         String username = getUsername();
@@ -87,6 +88,7 @@ public class TravelMbtiService {
         return ResponseEntity.status(HttpStatus.OK).body(responseSimpleMbtiDTOS);
     }
 
+    @Transactional
     public ResponseEntity<?> getDetailTravelMbti(Long mbtiId, String mbti) {
 
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
@@ -115,9 +117,24 @@ public class TravelMbtiService {
                 .build());
     }
 
+    @Transactional
+    public ResponseEntity<?> deleteTravelMbti(Long mbtiId, String mbti) {
+
+        TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        if (!travelMbti.getMbti().equals(mbti)) {
+            throw new ApiException(ErrorCode.BAD_REQUEST);
+        }
+
+        travelMbtiRepository.delete(travelMbti);
+
+        return ResponseEntity.ok(SuccessResponse.ok("success delete"));
+    }
 
     private String getUsername() {
 
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
 }
