@@ -65,6 +65,26 @@ public class TravelMbtiService {
         return ResponseEntity.ok(SuccessResponse.ok("success save"));
     }
 
+    public ResponseEntity<?> getAllTravelMbti() {
+
+        String username = getUsername();
+        System.out.println("username: " + username);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
+
+        List<TravelMbti> travelMbtiList = travelMbtiRepository.findAllByUserOrderByCreatedAtDesc(user)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        ResponseMbtiListDTO responseMbtiListDTO = ResponseMbtiListDTO.builder()
+                .mbtiList(travelMbtiList.stream()
+                        .map(TravelMbti::getMbti)
+                        .toList())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.OK).body(responseMbtiListDTO);
+    }
+
     private String getUsername() {
 
         return SecurityContextHolder.getContext().getAuthentication().getName();
