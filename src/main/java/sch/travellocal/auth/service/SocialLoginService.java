@@ -32,6 +32,9 @@ public class SocialLoginService {
         String newAccessToken = jwtUtil.createJwt("access", username, role, ACCESS_TOKEN_TTL);
         String newRefreshToken = jwtUtil.createJwt("refresh", username, role, REFRESH_TOKEN_TTL);
 
+        System.out.println("newAccessToken: " + newAccessToken);
+        System.out.println("newRefreshToken: " + newRefreshToken);
+
         refreshTokenHelper.addBlacklistRefreshToken(refreshToken);
         refreshTokenHelper.deleteRefreshToken(refreshToken);
 
