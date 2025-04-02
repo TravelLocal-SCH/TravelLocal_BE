@@ -3,11 +3,10 @@ package sch.travellocal.domain.travelmbti.dto;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
-
 @Getter
 @Builder
-public class ResponseMbtiListDTO {
+public class ResponseSimpleMbtiDTO {
 
-    private List<String> mbtiList;
+    private Long mbtiId;
+    private String mbti;
 }

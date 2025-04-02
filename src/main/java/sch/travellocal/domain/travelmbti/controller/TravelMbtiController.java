@@ -19,9 +19,15 @@ public class TravelMbtiController {
         return travelMbtiService.saveTravelMbti(travelMbtiDTO);
     }
 
-    @GetMapping("/my")
+    @GetMapping("/all-mbti")
     public ResponseEntity<?> getAllTravelMbti() {
 
         return travelMbtiService.getAllTravelMbti();
+    }
+
+    @GetMapping("/detail-mbti")
+    public ResponseEntity<?> getDetailTravelMbti(@RequestParam("mbtiId") Long mbtiId, @RequestParam("mbti") String mbti) {
+
+        return travelMbtiService.getDetailTravelMbti(mbtiId, mbti);
     }
 }
