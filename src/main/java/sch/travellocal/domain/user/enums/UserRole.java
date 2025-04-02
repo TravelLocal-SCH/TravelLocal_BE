@@ -2,7 +2,7 @@ package sch.travellocal.domain.user.enums;
 
 public enum UserRole {
 
-    FOREIGNER,
-    KOREAN,
-    ADMIN
+    ADMIN,
+    GUIDE_PROVIDER,
+    GUIDE_CONSUMER
 }

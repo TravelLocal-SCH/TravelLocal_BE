@@ -1,24 +1,22 @@
 package sch.travellocal.domain.user.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import lombok.*;
+import sch.travellocal.common.entity.BaseTimeEntity;
 import sch.travellocal.domain.user.enums.UserRole;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user")
 @NoArgsConstructor
-public class User {
+@Getter
+@Setter
+@ToString
+public class User extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -35,14 +33,6 @@ public class User {
 
     @Column(nullable = false, length = 15, unique = true)
     private String mobile;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false, insertable = false)
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,5 +55,4 @@ public class User {
         this.role = role;
         this.protectNumber = protectNumber;
     }
-
 }

@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import sch.travellocal.common.exception.custom.UnauthorizedException;
+import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.common.response.ErrorResponse;
 
@@ -24,8 +24,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedException(AuthException ex, HttpServletRequest request) {
 
         log.error("Unauthorized exception: {}, messsage: {}", ex.getClass().getSimpleName(), ex.getMessage());
 
