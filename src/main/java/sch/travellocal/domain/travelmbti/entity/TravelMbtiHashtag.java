@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Getter
@@ -22,5 +24,6 @@ public class TravelMbtiHashtag {
 
     @ManyToOne
     @JoinColumn(name = "mbti_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private TravelMbti travelMbti;
 }
