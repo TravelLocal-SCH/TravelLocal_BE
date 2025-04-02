@@ -13,6 +13,7 @@ public enum ErrorCode {
     INVALID_REQUEST_DATA(HttpStatus.BAD_REQUEST, "B002", "요청 데이터가 올바르지 않습니다."),
     MISSING_REQUIRED_PARAMETER(HttpStatus.BAD_REQUEST, "B003", "필수 요청 파라미터가 누락되었습니다."),
     INVALID_JSON_FORMAT(HttpStatus.BAD_REQUEST, "B004", "잘못된 JSON 형식입니다."),
+    UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "B005", "지원하지 않는 OAuth 공급자입니다."),
 
     /** ========== 401 UNAUTHORIZED (인증 오류) ========== **/
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증이 필요합니다."),
