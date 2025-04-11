@@ -3,7 +3,6 @@ package sch.travellocal.domain.travelmbti.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sch.travellocal.common.exception.custom.ApiException;
@@ -19,7 +18,7 @@ import sch.travellocal.domain.travelmbti.repository.TravelMbtiHashtagRepository;
 import sch.travellocal.domain.travelmbti.repository.TravelMbtiRegionRepository;
 import sch.travellocal.domain.travelmbti.repository.TravelMbtiRepository;
 import sch.travellocal.domain.user.entity.User;
-import sch.travellocal.domain.user.repository.UserRepository;
+import sch.travellocal.domain.user.service.SecurityUserService;
 
 import java.util.List;
 
@@ -27,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TravelMbtiService {
 
-    private final UserRepository userRepository;
+    private final SecurityUserService securityUserService;
     private final TravelMbtiRepository travelMbtiRepository;
     private final TravelMbtiHashtagRepository travelMbtiHashtagRepository;
     private final TravelMbtiRegionRepository travelMbtiRegionRepository;
@@ -35,11 +34,7 @@ public class TravelMbtiService {
     @Transactional
     public ResponseEntity<?> saveTravelMbti(TravelMbtiDTO travelMbtiDTO) {
 
-        String username = getUsername();
-        System.out.println("username: " + username);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
+        User user = securityUserService.getUserByJwt();
 
         TravelMbti mbti = TravelMbti.builder()
                 .mbti(travelMbtiDTO.getTravelMbti())
@@ -69,11 +64,7 @@ public class TravelMbtiService {
     @Transactional
     public ResponseEntity<?> getAllTravelMbti() {
 
-        String username = getUsername();
-        System.out.println("username: " + username);
-
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
+        User user = securityUserService.getUserByJwt();
 
         List<TravelMbti> travelMbtiList = travelMbtiRepository.findAllByUserOrderByCreatedAtDesc(user)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -131,10 +122,4 @@ public class TravelMbtiService {
 
         return ResponseEntity.ok(SuccessResponse.ok("success delete"));
     }
-
-    private String getUsername() {
-
-        return SecurityContextHolder.getContext().getAuthentication().getName();
-    }
-
 }
