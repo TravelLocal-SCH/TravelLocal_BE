@@ -34,6 +34,7 @@ public class TravelMbtiService {
     @Transactional
     public ResponseEntity<?> saveTravelMbti(TravelMbtiDTO travelMbtiDTO) {
 
+        // 현재 로그인한 사용자 정보를 가져와 TravelMbti 엔티티 생성 및 저장
         User user = securityUserService.getUserByJwt();
 
         TravelMbti mbti = TravelMbti.builder()
@@ -42,6 +43,7 @@ public class TravelMbtiService {
                 .build();
         travelMbtiRepository.save(mbti);
 
+        // 전달받은 해시태그 리스트를 TravelMbtiHashtag 엔티티로 변환 후 저장
         List<TravelMbtiHashtag> hashtags = travelMbtiDTO.getHashtags().stream()
                 .map(hashtag -> TravelMbtiHashtag.builder()
                         .hashtag(hashtag)
@@ -50,6 +52,7 @@ public class TravelMbtiService {
                 .toList();
         travelMbtiHashtagRepository.saveAll(hashtags);
 
+        // 전달받은 지역 리스트를 TravelMbtiRegion 엔티티로 변환 후 저장
         List<TravelMbtiRegion> regions = travelMbtiDTO.getRegions().stream()
                 .map(region -> TravelMbtiRegion.builder()
                         .region(region)
@@ -66,9 +69,11 @@ public class TravelMbtiService {
 
         User user = securityUserService.getUserByJwt();
 
+        // 사용자의 TravelMbti를 생성일 역순으로 조회
         List<TravelMbti> travelMbtiList = travelMbtiRepository.findAllByUserOrderByCreatedAtDesc(user)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
+        // 조회된 TravelMbti 리스트를 DTO 리스트로 변환
         List<ResponseSimpleMbtiDTO> responseSimpleMbtiDTOS = travelMbtiList.stream()
                 .map(mbti -> ResponseSimpleMbtiDTO.builder()
                         .mbtiId(mbti.getId())
@@ -85,10 +90,12 @@ public class TravelMbtiService {
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
+        // 요청한 mbti 값과 DB에 저장된 값이 일치하는지 검증
         if (!travelMbti.getMbti().equals(mbti)) {
             throw new ApiException(ErrorCode.BAD_REQUEST);
         }
 
+        // TravelMbti에 연관된 해시태그와 지역 정보를 조회
         List<String> travelMbtiHashtags = travelMbtiHashtagRepository.findAllByTravelMbti(travelMbti)
                 .map(hashtags -> hashtags.stream()
                         .map(TravelMbtiHashtag::getHashtag)
@@ -101,6 +108,7 @@ public class TravelMbtiService {
                         .toList())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
+        // 위의 정보를 담은 DTO를 생성하여 응답
         return ResponseEntity.status(HttpStatus.OK).body(ResponseDetailMbtiDTO.builder()
                 .mbti(mbti)
                 .hashtags(travelMbtiHashtags)
@@ -114,6 +122,7 @@ public class TravelMbtiService {
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
+        // 요청한 mbti 값과 DB에 저장된 값이 일치하는지 검증
         if (!travelMbti.getMbti().equals(mbti)) {
             throw new ApiException(ErrorCode.BAD_REQUEST);
         }
