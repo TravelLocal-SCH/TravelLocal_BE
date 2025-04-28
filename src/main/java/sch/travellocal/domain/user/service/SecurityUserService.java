@@ -15,7 +15,7 @@ public class SecurityUserService {
     private final UserRepository userRepository;
 
     /**
-     * Jwt Token을 통해 로그인한 유저 가져오기
+     * 요청에 담긴 Jwt Token을 통해 로그인한 유저 가져오기
      */
     public User getUserByJwt() {
 
