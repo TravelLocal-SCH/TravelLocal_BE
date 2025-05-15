@@ -21,6 +21,9 @@ public class SocialLoginController {
         return ResponseEntity.ok("home");
     }
 
+    /**
+     * token 재발급 API
+     */
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
 
