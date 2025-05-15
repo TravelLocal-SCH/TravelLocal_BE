@@ -44,11 +44,18 @@ public class JwtFilter extends OncePerRequestFilter {
 
         CustomOAuth2User customOAuth2User = new CustomOAuth2User(
                 UserDTO.builder()
+                        .name(username)
                         .username(username)
                         .role(UserRole.valueOf(role))
                         .build());
+
+        System.out.println("jwtFilter - username: " + username);
+        System.out.println("jwtFilter - username: " + customOAuth2User.getUsername());
+
         Authentication authentication = new UsernamePasswordAuthenticationToken(customOAuth2User, null, customOAuth2User.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        System.out.println("jwtFilter 실행됨" + SecurityContextHolder.getContext().getAuthentication().getName());
 
         filterChain.doFilter(request, response);
     }

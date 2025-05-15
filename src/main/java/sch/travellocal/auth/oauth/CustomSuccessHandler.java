@@ -42,6 +42,11 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String accessToken = jwtUtil.createJwt("access", username, role, ACCESS_TOKEN_TTL);
         String refreshToken = jwtUtil.createJwt("refresh", username, role, REFRESH_TOKEN_TTL);
 
+        // 추후에 삭제 예정
+        System.out.println("accessToken: Bearer " + accessToken);
+        System.out.println("refreshToken: " + refreshToken);
+        // 여기까지 삭제
+
         refreshTokenHelper.saveRefreshToken(refreshToken);
 
         response.setHeader("Authorization", "Bearer " + accessToken);
