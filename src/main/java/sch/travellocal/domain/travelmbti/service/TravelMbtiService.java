@@ -24,6 +24,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TravelMbtiService {
 
     private final SecurityUserService securityUserService;
@@ -31,8 +32,7 @@ public class TravelMbtiService {
     private final TravelMbtiHashtagRepository travelMbtiHashtagRepository;
     private final TravelMbtiRegionRepository travelMbtiRegionRepository;
 
-    @Transactional
-    public ResponseEntity<?> saveTravelMbti(TravelMbtiDTO travelMbtiDTO) {
+    public String saveTravelMbti(TravelMbtiDTO travelMbtiDTO) {
 
         // 현재 로그인한 사용자 정보를 가져와 TravelMbti 엔티티 생성 및 저장
         User user = securityUserService.getUserByJwt();
@@ -61,11 +61,11 @@ public class TravelMbtiService {
                 .toList();
         travelMbtiRegionRepository.saveAll(regions);
 
-        return ResponseEntity.ok(SuccessResponse.ok("success save"));
+        return "success save";
     }
 
-    @Transactional
-    public ResponseEntity<?> getAllTravelMbti() {
+    @Transactional(readOnly = true)
+    public List<ResponseSimpleMbtiDTO> getAllTravelMbti() {
 
         User user = securityUserService.getUserByJwt();
 
@@ -81,11 +81,11 @@ public class TravelMbtiService {
                         .build())
                 .toList();
 
-        return ResponseEntity.status(HttpStatus.OK).body(responseSimpleMbtiDTOS);
+        return responseSimpleMbtiDTOS;
     }
 
-    @Transactional
-    public ResponseEntity<?> getDetailTravelMbti(Long mbtiId, String mbti) {
+    @Transactional(readOnly = true)
+    public ResponseDetailMbtiDTO getDetailTravelMbti(Long mbtiId, String mbti) {
 
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -109,15 +109,14 @@ public class TravelMbtiService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
 
         // 위의 정보를 담은 DTO를 생성하여 응답
-        return ResponseEntity.status(HttpStatus.OK).body(ResponseDetailMbtiDTO.builder()
+        return ResponseDetailMbtiDTO.builder()
                 .mbti(mbti)
                 .hashtags(travelMbtiHashtags)
                 .regions(travelMbtiRegions)
-                .build());
+                .build();
     }
 
-    @Transactional
-    public ResponseEntity<?> deleteTravelMbti(Long mbtiId, String mbti) {
+    public String deleteTravelMbti(Long mbtiId, String mbti) {
 
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
@@ -129,6 +128,6 @@ public class TravelMbtiService {
 
         travelMbtiRepository.delete(travelMbti);
 
-        return ResponseEntity.ok(SuccessResponse.ok("success delete"));
+        return "success delete";
     }
 }
