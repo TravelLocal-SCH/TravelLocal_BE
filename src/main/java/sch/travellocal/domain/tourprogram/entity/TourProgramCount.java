@@ -1,16 +1,16 @@
 package sch.travellocal.domain.tourprogram.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
-@Table(name = "program_count")
+@Table(name = "tour_program_count")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProgramCount {
+public class TourProgramCount {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,7 +21,7 @@ public class ProgramCount {
     @Column(name = "wishlist_count", nullable = false)
     private int wishlistCount;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_program_id", nullable = false)
     private TourProgram tourProgram;
 }

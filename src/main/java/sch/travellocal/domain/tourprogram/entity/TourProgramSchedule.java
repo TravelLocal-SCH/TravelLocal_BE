@@ -3,12 +3,15 @@ package sch.travellocal.domain.tourprogram.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "tour_program_schedule")
+@Table(name = "tour_program_schedule",
+    uniqueConstraints = {
+            @UniqueConstraint(columnNames = {"day", "schedule_sequence", "tour_program_id"})
+    })
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -26,16 +29,21 @@ public class TourProgramSchedule {
     @Column(name = "place_name", nullable = false)
     private String placeName;
 
-    @Column(nullable = false)
-    private String address;
+    // 위도
+    @Column
+    private Double lat;
+
+    // 경도
+    @Column
+    private Double lon;
 
     @Column(name = "place_description")
     private String placeDescription;
 
     @Column(name = "travel_time")
-    private LocalDateTime travelTime;
+    private Integer travelTime;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_program_id", nullable = false)
     private TourProgram tourProgram;
 }

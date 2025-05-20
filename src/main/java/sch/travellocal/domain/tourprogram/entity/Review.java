@@ -1,15 +1,15 @@
-package sch.travellocal.domain.review.entity;
+package sch.travellocal.domain.tourprogram.entity;
 
 import jakarta.persistence.*;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sch.travellocal.common.entity.BaseTimeEntity;
-import sch.travellocal.domain.tourprogram.entity.TourProgram;
 import sch.travellocal.domain.user.entity.User;
 
-
 @Entity
-@Table(name = "review")
+@Table(name = "tour_program_review")
+@Getter
 @NoArgsConstructor
 public class Review extends BaseTimeEntity {
 
@@ -17,20 +17,20 @@ public class Review extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private int rating;
+    private float rating;
 
     private String content;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_program_id", nullable = false)
     private TourProgram tourProgram;
 
     @Builder
-    public Review(int rating, String content, User user, TourProgram tourProgram) {
+    public Review(float rating, String content, User user, TourProgram tourProgram) {
         this.rating = rating;
         this.content = content;
         this.user = user;
