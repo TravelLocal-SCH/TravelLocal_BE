@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import sch.travellocal.common.exception.custom.UnauthorizedException;
+import sch.travellocal.common.exception.custom.ApiException;
+import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.common.response.ErrorResponse;
 
@@ -24,14 +25,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
     }
 
-    @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+    @ExceptionHandler(AuthException.class)
+    public ResponseEntity<ErrorResponse> handleAuthException(AuthException ex, HttpServletRequest request) {
 
-        log.error("Unauthorized exception: {}, messsage: {}", ex.getClass().getSimpleName(), ex.getMessage());
+        log.error("Auth exception: {}, messsage: {}", ex.getClass().getSimpleName(), ex.getMessage());
 
         ErrorResponse errorResponse = ErrorResponse.of(ex.getErrorCode(), request.getRequestURI());
         return ResponseEntity.status(ex.getErrorCode().getStatus()).body(errorResponse);
     }
 
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException ex, HttpServletRequest request) {
 
+        log.error("Api exception: {}, messsage: {}", ex.getClass().getSimpleName(), ex.getMessage());
+
+        ErrorResponse errorResponse = ErrorResponse.of(ex.getErrorCode(), request.getRequestURI());
+        return ResponseEntity.status(ex.getErrorCode().getStatus()).body(errorResponse);
+    }
 }
