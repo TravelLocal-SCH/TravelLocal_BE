@@ -18,7 +18,7 @@ import java.util.Optional;
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    @Query("SELECT new sch.travellocal.domain.tourprogram.dto.TourProgramReviewDto(" +
+    @Query("SELECT new sch.travellocal.domain.tourprogram.dto.ReviewDto(" +
             "r.user.id, r.user.name, r.id, r.rating, r.content, r.createdAt, r.updatedAt) " +
             "FROM Review r " +
             "WHERE r.tourProgram.id = :tourProgramId")
