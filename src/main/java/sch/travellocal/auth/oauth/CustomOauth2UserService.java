@@ -6,6 +6,8 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import sch.travellocal.auth.dto.GoogleResponse;
+import sch.travellocal.auth.dto.KakaoResponse;
 import sch.travellocal.auth.dto.NaverResponse;
 import sch.travellocal.auth.dto.OAuth2Response;
 import sch.travellocal.common.exception.custom.AuthException;
@@ -72,6 +74,16 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
         if (registrationId.equals("naver")) {
             return new NaverResponse(oAuth2User.getAttributes());
+        }
+        else if (registrationId.equals("kakao")) {
+            System.out.println("oAuth2User: " + oAuth2User);
+            System.out.println("oAuth2User: " + oAuth2User.getAttributes());
+            return new KakaoResponse(oAuth2User.getAttributes());
+        }
+        else if (registrationId.equals("google")) {
+            System.out.println("oAuth2User: " + oAuth2User);
+            System.out.println("oAuth2User: " + oAuth2User.getAttributes());
+            return new GoogleResponse(oAuth2User.getAttributes());
         }
         return null;
     }
