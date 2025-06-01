@@ -1,5 +1,6 @@
 package sch.travellocal.auth.oauth;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -13,8 +14,8 @@ import sch.travellocal.auth.util.JwtUtil;
 import sch.travellocal.auth.util.RefreshTokenHelper;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @AllArgsConstructor
@@ -24,7 +25,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final CookieUtil cookieUtil;
     private final RedisTemplate<String, String> redisTemplate;
     private final RefreshTokenHelper refreshTokenHelper;
-    private final long ACCESS_TOKEN_TTL = 10 * 60;
+    private ObjectMapper objectMapper;
+    private final long ACCESS_TOKEN_TTL = 7 * 24 * 60 * 60; //10 * 60;
     private final long REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60;
 
     @Override
@@ -49,8 +51,24 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         refreshTokenHelper.saveRefreshToken(refreshToken);
 
-        response.setHeader("Authorization", "Bearer " + accessToken);
-        response.addCookie(cookieUtil.createCookie("refresh", refreshToken, (int) REFRESH_TOKEN_TTL));
-        response.sendRedirect("http://localhost:3000/");
+        // 5. 인증 코드 생성 (UUID)
+        String authCode = UUID.randomUUID().toString();
+
+        // 6. Redis에 인증 코드 → access/refresh token 매핑
+        String redisKey = "auth_code:" + authCode;
+
+        Map<String, String> tokenMap = new HashMap<>();
+        tokenMap.put("accessToken", accessToken);
+        tokenMap.put("refreshToken", refreshToken);
+        String tokenValue = objectMapper.writeValueAsString(tokenMap);
+
+        redisTemplate.opsForValue().set(redisKey, tokenValue, 5, TimeUnit.MINUTES);
+
+        // 7. React Native 앱으로 딥링크 리디렉션
+        String redirectUrl = "travellocal://login/callback?code=" + authCode;
+
+        System.out.println("Redirect 시작");
+
+        response.sendRedirect(redirectUrl);
     }
 }
