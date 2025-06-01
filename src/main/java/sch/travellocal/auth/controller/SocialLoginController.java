@@ -41,4 +41,11 @@ public class SocialLoginController {
 
         return socialLoginService.reissue(request, response);
     }
+
+    @GetMapping("/auth/token")
+    public ResponseEntity<?> getTokenByAuthCode(@RequestParam("code") String code, HttpServletResponse response) {
+
+        System.out.println("/auth/token api 진입 성공");
+        return socialLoginService.getTokenByAuthCode(code, response);
+    }
 }
