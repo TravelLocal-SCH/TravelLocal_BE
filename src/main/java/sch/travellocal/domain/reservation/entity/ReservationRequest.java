@@ -3,6 +3,7 @@ package sch.travellocal.domain.reservation.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
+import sch.travellocal.domain.payment.entity.PaymentEntity;
 import sch.travellocal.domain.reservation.enums.RequestStatus;
 import sch.travellocal.domain.tourprogram.entity.TourProgram;
 import sch.travellocal.domain.user.entity.User;
@@ -53,4 +54,8 @@ public class ReservationRequest {
     @ManyToOne
     @JoinColumn(name = "tour_program_id", nullable = false)
     private TourProgram tourProgram; // 예약한 투어 프로그램
+
+    @OneToOne(mappedBy = "reservationRequest", cascade = CascadeType.ALL)
+    private PaymentEntity payment;
+
 }
