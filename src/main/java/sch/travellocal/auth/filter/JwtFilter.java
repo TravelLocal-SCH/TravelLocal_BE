@@ -38,7 +38,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         jwtUtil.validateToken(accessToken);
 
-
         String username = jwtUtil.getUserName(accessToken);
         String role = jwtUtil.getRole(accessToken);
 
