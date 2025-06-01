@@ -27,6 +27,7 @@ public enum ErrorCode {
     JWT_MALFORMED(HttpStatus.UNAUTHORIZED, "A009", "JWT 형식이 올바르지 않습니다."),
     INVALID_TOKEN_CATEGORY(HttpStatus.UNAUTHORIZED, "A010", "토큰 카테고리가 유효하지 않습니다."),
     TOKEN_NOT_PROVIDED(HttpStatus.UNAUTHORIZED, "A011", "토큰이 제공되지 않았습니다."),
+    INVALID_AUTH_CODE(HttpStatus.UNAUTHORIZED, "A012", "코드가 유효하지 않거나 만료되었습니다."),
 
     /** ========== 403 FORBIDDEN (권한 부족) ========== **/
     FORBIDDEN(HttpStatus.FORBIDDEN, "F001", "접근이 거부되었습니다."),
