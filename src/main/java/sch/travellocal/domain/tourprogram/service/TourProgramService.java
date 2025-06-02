@@ -144,7 +144,7 @@ public class TourProgramService {
                 .map(hashtag -> hashtag.getHashtag().getName()).toList();
 
         // 상세 프로그램 스케줄 get
-        List<TourProgramScheduleDto> tourProgramScheduleDtos = tpScheduleRepository.findAllByTourProgram(tourProgram).stream()
+        List<TourProgramScheduleDto> tourProgramScheduleDtos = tpScheduleRepository.findAllByTourProgramOrderByDayAscScheduleSequenceAsc(tourProgram).stream()
                 .map(schedule -> TourProgramScheduleDto.builder()
                         .day(schedule.getDay())
                         .scheduleSequence(schedule.getScheduleSequence())
