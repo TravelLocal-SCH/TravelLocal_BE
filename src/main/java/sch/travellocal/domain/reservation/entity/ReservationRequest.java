@@ -36,8 +36,6 @@ public class ReservationRequest {
     @Column(name = "guide_end_date", nullable = false)
     private LocalDateTime guideEndDate; // 가이드 종료 시간
 
-    @Column(name = "payment_method", length = 100, nullable = false)
-    private String paymentMethod; // 결제 수단 (ex: card, kakaoPay)
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", nullable = false)
@@ -50,6 +48,10 @@ public class ReservationRequest {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user; // 예약한 사용자 (회원)
+
+    @ManyToOne
+    @JoinColumn(name = "guide_id", nullable = true)
+    private User guide; // 예약 요청을 받는 가이드
 
     @ManyToOne
     @JoinColumn(name = "tour_program_id", nullable = false)

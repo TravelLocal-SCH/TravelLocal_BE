@@ -20,6 +20,8 @@ public class ReservationRequestDTO {
 
     private String paymentMethod; // 결제 수단 (ex: 카드, 카카오페이 등)
 
+    private Long guideId;
+
     private int totalPrice; // 총 결제 금액
 
 

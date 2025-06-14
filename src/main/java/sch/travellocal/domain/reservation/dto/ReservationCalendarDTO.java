@@ -10,8 +10,10 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 public class ReservationCalendarDTO {
-    private String tourTitle;
+    private Long id;
+    private String tourProgramTitle;
     private LocalDateTime guideStartDate;
     private LocalDateTime guideEndDate;
-    private String username;
+    private int numOfPeople;
+    private String requestStatus;
 }

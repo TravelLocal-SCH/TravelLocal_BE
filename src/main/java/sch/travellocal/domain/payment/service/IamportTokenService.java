@@ -11,6 +11,8 @@ import java.time.Instant;
 
 @Slf4j
 @Service
+
+// 아임포트 토근의 유무를 조회하고 만료 시 재발급 하는 클래스
 public class IamportTokenService {
 
     private final WebClient webClient;
