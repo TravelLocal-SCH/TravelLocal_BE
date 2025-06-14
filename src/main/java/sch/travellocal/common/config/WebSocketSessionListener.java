@@ -1,4 +1,4 @@
-package sch.travellocal.domain.chat.config;
+package sch.travellocal.common.config;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;

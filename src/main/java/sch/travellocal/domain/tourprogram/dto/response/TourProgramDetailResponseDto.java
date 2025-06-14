@@ -25,4 +25,6 @@ public class TourProgramDetailResponseDto {
     // count
     private int reviewCount;
     private int wishlistCount;
+    // 해당 게시물에 대한 유저의 위시리스트 선택 여부
+    private boolean isWishlisted;
 }
