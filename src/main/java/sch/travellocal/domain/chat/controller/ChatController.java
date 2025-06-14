@@ -14,19 +14,26 @@ import java.util.List;
 public class ChatController {
 
     private final ChatService chatService;
+//
 
+    // 채팅방 조회
     @GetMapping("/rooms")
     public List<ChatRoomDto> getChatRooms(@RequestParam Long userId) {
         return chatService.getChatRooms(userId);
     }
 
+    // 채팅방 안에 있는 메세지 내역 조회
     @GetMapping("/rooms/{roomId}/messages")
     public List<MessageDto> getMessages(@PathVariable Long roomId) {
         return chatService.getMessages(roomId);
     }
 
+    // 채팅방 생성 및 입장(이미 있다면 그대로 입장)
     @PostMapping("/rooms")
-    public ChatRoomDto createChatRoom(@RequestParam Long user1Id, @RequestParam Long user2Id) {
-        return chatService.getOrCreateChatRoom(user1Id, user2Id);
+    public ChatRoomDto enterOrCreateChatRoom(@RequestParam Long userId) {
+        return chatService.getOrCreateChatRoom(userId);
     }
+
+
+
 }

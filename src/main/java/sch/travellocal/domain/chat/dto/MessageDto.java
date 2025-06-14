@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+
+// 메세지 내역을 받고 저장을 위한 DTO
+
 public class MessageDto {
     private Long id;
     private Long userId;
