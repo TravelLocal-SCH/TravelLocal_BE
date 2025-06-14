@@ -18,6 +18,8 @@ public class ChatWebSocketController {
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload MessageDto messageDto) {
 
+        System.out.println("Received message: roomId=" + messageDto.getId() + ", userId=" + messageDto.getUserId() + ", message=" + messageDto.getMessage());
+
         //메세지 저장
         Message saved = chatService.saveMessage(messageDto.getId(), messageDto.getUserId(), messageDto.getMessage());
 
