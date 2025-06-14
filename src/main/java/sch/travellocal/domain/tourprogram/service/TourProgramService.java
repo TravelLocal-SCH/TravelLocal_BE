@@ -40,8 +40,8 @@ public class TourProgramService {
     private final TourProgramScheduleRepository tpScheduleRepository;
     private final TourProgramCountRepository tpCountRepository;
     private final TourProgramHashtagRepository tpHashtagRepository;
-    private final ReviewRepository tpReviewRepository;
-    private final WishlistRepository tpWishlistRepository;
+    private final ReviewRepository reviewRepository;
+    private final WishlistRepository wishlistRepository;
     private final ImageRepository imageRepository;
     private final S3Service s3Service;
 
@@ -119,6 +119,7 @@ public class TourProgramService {
                         .build())
                 .reviewCount(0)
                 .wishlistCount(0)
+                .isWishlisted(false)
                 .build();
     }
 
@@ -132,6 +133,9 @@ public class TourProgramService {
         // 게시물 생성 시점에 count객체를 생성했기 때문에 존재하지 않는 상황은 DB에 문제있는 상황
         TourProgramCount tourProgramCount = tpCountRepository.findByTourProgramId(tourProgramId)
                 .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "Tour Program Count Not Found"));
+
+        // 해당 게시물에 대한 유저의 위시리스트 선택 여부
+        boolean isWishlisted = wishlistRepository.existsByTourProgramAndUser(tourProgram, securityUserService.getUserByJwt());
 
         // 해시태그 get
         /**
@@ -167,6 +171,7 @@ public class TourProgramService {
                 .thumbnailUrl(tourProgram.getThumbnailUrl())
                 .wishlistCount(tourProgramCount.getWishlistCount())
                 .reviewCount(tourProgramCount.getReviewCount())
+                .isWishlisted(isWishlisted)
                 .user(TourProgramUserDto.builder()
                         .id(tourProgram.getUser().getId())
                         .name(tourProgram.getUser().getName())
@@ -189,12 +194,14 @@ public class TourProgramService {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
 
-        // 썸네일이 수정됐다면 s3에서 삭제
-        if (!existTourProgram.getThumbnailUrl().equals(requestDto.getThumbnailUrl())) {
-            s3Service.deleteFileByFileName(requestDto.getThumbnailUrl());
+        // 썸네일이 변경된 경우 s3에서 삭제
+        String oldThumbnail = existTourProgram.getThumbnailUrl();
+        String newThumbnail = requestDto.getThumbnailUrl();
+        if (oldThumbnail != null && !oldThumbnail.equals(newThumbnail)) {
+            s3Service.deleteFileByFileName(oldThumbnail);
         }
 
-        // 필드 업데이트
+        // 프로그램 기본 정보 업데이트
         existTourProgram.setTitle(requestDto.getTitle());
         existTourProgram.setDescription(requestDto.getDescription());
         existTourProgram.setGuidePrice(requestDto.getGuidePrice());
@@ -203,6 +210,7 @@ public class TourProgramService {
 
         // schedules 업데이트
         tpScheduleRepository.deleteAllByTourProgram(existTourProgram);
+        tpScheduleRepository.flush();
         List<TourProgramSchedule> schedules = requestDto.getSchedules().stream()
                 .map(scheduleDto -> TourProgramSchedule.builder()
                         .day(scheduleDto.getDay())
@@ -219,6 +227,8 @@ public class TourProgramService {
 
         // 해시태그 업데이트
         tpHashtagRepository.deleteAllByTourProgram(existTourProgram);
+
+        existTourProgram.getTourProgramHashtags().clear();
         for (String tag : requestDto.getHashtags()) {
             Hashtag hashtag = hashtagRepository.findByName(tag)
                     .orElseGet(() -> hashtagRepository.save(Hashtag.builder().name(tag).build()));
@@ -227,11 +237,14 @@ public class TourProgramService {
         tpHashtagRepository.saveAll(existTourProgram.getTourProgramHashtags());
 
         // tourProgram 저장
-        tpScheduleRepository.saveAll(schedules);
+        tpRepository.save(existTourProgram);
 
         // count 객체 get
         TourProgramCount count = tpCountRepository.findByTourProgramId(existTourProgram.getId())
                 .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "Tour Program Count Not Found"));
+
+        // 해당 게시물에 대한 유저의 위시리스트 선택 여부
+        boolean isWishlisted = wishlistRepository.existsByTourProgramAndUser(existTourProgram, user);
 
         // 업데이트된 상세 게시물 정보 반환
         return TourProgramDetailResponseDto.builder()
@@ -261,6 +274,7 @@ public class TourProgramService {
                         .build())
                 .reviewCount(count.getReviewCount())
                 .wishlistCount(count.getWishlistCount())
+                .isWishlisted(isWishlisted)
                 .build();
     }
 
@@ -289,7 +303,7 @@ public class TourProgramService {
         tpCountRepository.deleteByTourProgram(existTourProgram);
 
         // tp와 연결된 reviews와 그에 대한 Imgs 객체 삭제 로직
-        List<Review> reviews = tpReviewRepository.findAllByTourProgramId(existTourProgram.getId());
+        List<Review> reviews = reviewRepository.findAllByTourProgramId(existTourProgram.getId());
         for (Review review : reviews) {
             List<Image> reviewImages = imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.REVIEW, review.getId());
             for (Image image : reviewImages) {
@@ -300,10 +314,10 @@ public class TourProgramService {
             imageRepository.deleteAll(reviewImages);
         }
         // DB에서 reviews 삭제
-        tpReviewRepository.deleteAll(reviews);
+        reviewRepository.deleteAll(reviews);
 
         // tp와 연결된 wishlist 삭제
-        tpWishlistRepository.deleteByTourProgram(existTourProgram);
+        wishlistRepository.deleteByTourProgram(existTourProgram);
 
         // tp 삭제
         tpRepository.delete(existTourProgram);
