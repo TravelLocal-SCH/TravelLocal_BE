@@ -38,7 +38,15 @@ public class PaymentService {
         this.userRepository = userRepository;
     }
 
+
+    // 프론트에서 받은 결제 정보를 토대로 아임포트에 검증 요청을 하는 서비스 로직
     public void processPayment(String impUid, String merchantUid, Long reservationRequestId, Long userId) throws Exception {
+        // 결제 내역 중복 확인
+        if (paymentRepository.existsByImpUid(impUid)) {
+            log.info("이미 처리된 결제입니다: {}", impUid);
+            return; // 예외 대신 조용히 종료하거나 필요시 기존 결제 반환 가능
+        }
+
         IamportResponse<Payment> response = iamportClient.paymentByImpUid(impUid);
 
         if (response.getResponse() == null || !"paid".equals(response.getResponse().getStatus())) {
@@ -52,15 +60,15 @@ public class PaymentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
 
-        // 💡 금액 검증
-        int expectedPrice = reservationRequest.getTotalPrice(); // 예약 시 금액
+        int expectedPrice = reservationRequest.getTotalPrice();
+        System.out.println("expectedPrice : " + expectedPrice);
         int paidPrice = iamportPayment.getAmount().intValue();
+        System.out.println("paidPrice : " + paidPrice);
 
         if (expectedPrice != paidPrice) {
             throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
         }
 
-        // 💾 DB 저장
         PaymentEntity payment = PaymentEntity.builder()
                 .impUid(impUid)
                 .paymentMethod(iamportPayment.getPayMethod())
@@ -73,4 +81,5 @@ public class PaymentService {
 
         paymentRepository.save(payment);
     }
+
 }
