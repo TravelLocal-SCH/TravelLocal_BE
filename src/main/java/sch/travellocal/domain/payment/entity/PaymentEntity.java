@@ -1,10 +1,9 @@
 package sch.travellocal.domain.payment.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import sch.travellocal.domain.payment.enums.PaymentStatus;
+import sch.travellocal.domain.reservation.entity.ReservationRequest;
 import sch.travellocal.domain.user.entity.User;
 
 import java.time.LocalDateTime;
@@ -14,9 +13,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Payment {
+@Getter
+@Setter
+public class PaymentEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "total_price", nullable = false)
@@ -41,8 +43,8 @@ public class Payment {
     @Column(name = "refunded_at")
     private LocalDateTime refundedAt;
 
-    @ManyToOne
-    @JoinColumn(name = "reservation_request_id", nullable = false)
+    @OneToOne
+    @JoinColumn(name = "reservation_request_id", nullable = false, unique = true)
     private ReservationRequest reservationRequest;
 
     @ManyToOne
