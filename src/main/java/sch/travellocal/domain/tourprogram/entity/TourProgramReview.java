@@ -11,7 +11,7 @@ import sch.travellocal.domain.user.entity.User;
 @Table(name = "tour_program_review")
 @Getter
 @NoArgsConstructor
-public class Review extends BaseTimeEntity {
+public class TourProgramReview extends BaseTimeEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,7 +30,7 @@ public class Review extends BaseTimeEntity {
     private TourProgram tourProgram;
 
     @Builder
-    public Review(float rating, String content, User user, TourProgram tourProgram) {
+    public TourProgramReview(float rating, String content, User user, TourProgram tourProgram) {
         this.rating = rating;
         this.content = content;
         this.user = user;
