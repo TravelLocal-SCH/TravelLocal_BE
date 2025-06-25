@@ -27,4 +27,6 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
     Page<WishlistProgramDto> findWishlistProgramsByUserId(@Param("userId") Long userId, Pageable pageable);
 
     void deleteByTourProgram(TourProgram existTourProgram);
+
+    boolean existsByTourProgramAndUser(TourProgram tourProgram, User userByJwt);
 }
