@@ -58,17 +58,10 @@ public class TourProgram extends BaseTimeEntity {
         hashtag.getTourProgramHashtags().add(tph);
     }
 
+    // case "reviewDesc" -> Sort.by("reviewCount").descending(); 정렬 조건에 필요
     @Formula("(SELECT c.review_count FROM tour_program_count c WHERE c.tour_program_id = id)")
     private int reviewCount;
 
     @Formula("(SELECT c.wishlist_count FROM tour_program_count c WHERE c.tour_program_id = id)")
     private int wishlistCount;
-
-//    public void removeTourProgramHashtag(TourProgramHashtag tourProgramHashtag) {
-//
-//        this.tourProgramHashtags.remove(tourProgramHashtag);
-//        // 해시태그는 삭제하지 않으면 고아로써 남긴 하지만 어차피 해시태그 자체가 db에 중복없이 저장되고
-//        // 나중에 사용될 때 존재하지 않는 값이라면 추가로 저장하기 때문에 굳이 삭제할 필요 없다고 판단
-//        // hashtag.getTourProgramHashtags().remove();
-//    }
 }
