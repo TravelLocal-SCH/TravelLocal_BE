@@ -17,11 +17,16 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/review")
+@RequestMapping("/api/tour-program/review")
 @Tag(name = "TourProgram_Review", description = "투어 프로그램에 대한 리뷰 API")
 public class ReviewController {
 
     private final ReviewService tpReviewService;
+
+    /**
+     * 리뷰 수정 API
+     * 추가해야 함
+     */
 
     /**
      * 리뷰 저장 API
