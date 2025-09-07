@@ -13,6 +13,7 @@ public class TourProgramScheduleDto {
 
     private int day;
     private int scheduleSequence;
+    private String googlePlaceId;
     private String placeName;
     private Double lat;
     private Double lon;
