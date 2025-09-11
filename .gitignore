@@ -25,8 +25,6 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-application.properties
-application.yaml
 application-secret.yaml
 
 ### NetBeans ###
