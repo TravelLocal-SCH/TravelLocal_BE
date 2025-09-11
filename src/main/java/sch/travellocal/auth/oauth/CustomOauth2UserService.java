@@ -17,7 +17,6 @@ import sch.travellocal.domain.user.entity.User;
 import sch.travellocal.domain.user.enums.UserRole;
 import sch.travellocal.domain.user.repository.UserRepository;
 
-
 @Service
 @AllArgsConstructor
 public class CustomOauth2UserService extends DefaultOAuth2UserService {
@@ -40,24 +39,21 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
         String username = oAuth2Response.getProvider() + "_" + oAuth2Response.getProviderId();
 
         User user = userRepository.findByUsername(username)
-                .map(existUser -> {
-                    existUser.setName(oAuth2Response.getName());
-                    existUser.setEmail(oAuth2Response.getEmail());
-                    existUser.setMobile(oAuth2Response.getMobile());
-                    existUser.setBirthYear(oAuth2Response.getBirthYear());
-                    existUser.setGender(oAuth2Response.getGender());
-                    return existUser;
-
-                }).orElseGet(() -> User.builder()
-                        .username(username)
-                        .name(oAuth2Response.getName())
-                        .email(oAuth2Response.getEmail())
-                        .mobile(oAuth2Response.getMobile())
-                        .birthYear(oAuth2Response.getBirthYear())
-                        .gender(oAuth2Response.getGender())
+                // 사용자 정보 수정은 사용자만 가능하도록, 해당 로직 냅두면 소셜로그인 시에 다시 덮어씌어짐
+                .orElseGet(() -> User.builder()
+                                .username(username)
+                                .name(oAuth2Response.getName())
+                                .email(oAuth2Response.getEmail())
+                                .gender(oAuth2Response.getGender())
+                                .birthYear(oAuth2Response.getBirthYear())
+                                .mobile(oAuth2Response.getMobile())
                         // 여행 프로그램을 등록하기 전까진 CONSUMER
-                        .role(UserRole.GUIDE_CONSUMER)
-                        .build());
+                        // 원래 권한마다 사용 가능한 기능 부여할 예정이였으나 현재는 보류
+                                .role(UserRole.GUIDE_CONSUMER)
+                                .build()
+
+                        // 회원가입 시 포인트 0으로 초기화
+                );
 
         userRepository.save(user);
 
