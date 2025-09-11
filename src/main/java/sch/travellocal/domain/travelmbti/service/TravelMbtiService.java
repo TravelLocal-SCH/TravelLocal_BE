@@ -1,13 +1,10 @@
 package sch.travellocal.domain.travelmbti.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sch.travellocal.common.exception.custom.ApiException;
 import sch.travellocal.common.exception.error.ErrorCode;
-import sch.travellocal.common.response.SuccessResponse;
 import sch.travellocal.domain.travelmbti.dto.ResponseDetailMbtiDTO;
 import sch.travellocal.domain.travelmbti.dto.ResponseSimpleMbtiDTO;
 import sch.travellocal.domain.travelmbti.dto.base.TravelMbtiDTO;
@@ -70,18 +67,18 @@ public class TravelMbtiService {
         User user = securityUserService.getUserByJwt();
 
         // 사용자의 TravelMbti를 생성일 역순으로 조회
-        List<TravelMbti> travelMbtiList = travelMbtiRepository.findAllByUserOrderByCreatedAtDesc(user)
-                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+        List<TravelMbti> travelMbtiList = travelMbtiRepository.findAllByUserOrderByCreatedAtDesc(user);
+        if (travelMbtiList.isEmpty()) {
+            throw new ApiException(ErrorCode.NOT_FOUND);
+        }
 
         // 조회된 TravelMbti 리스트를 DTO 리스트로 변환
-        List<ResponseSimpleMbtiDTO> responseSimpleMbtiDTOS = travelMbtiList.stream()
+        return travelMbtiList.stream()
                 .map(mbti -> ResponseSimpleMbtiDTO.builder()
                         .mbtiId(mbti.getId())
                         .mbti(mbti.getMbti())
                         .build())
                 .toList();
-
-        return responseSimpleMbtiDTOS;
     }
 
     @Transactional(readOnly = true)
@@ -118,8 +115,14 @@ public class TravelMbtiService {
 
     public String deleteTravelMbti(Long mbtiId, String mbti) {
 
+
         TravelMbti travelMbti = travelMbtiRepository.findById(mbtiId)
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND));
+
+        // user 검증
+        if (!travelMbti.getUser().equals(securityUserService.getUserByJwt())) {
+            throw new ApiException(ErrorCode.UNAUTHORIZED);
+        }
 
         // 요청한 mbti 값과 DB에 저장된 값이 일치하는지 검증
         if (!travelMbti.getMbti().equals(mbti)) {

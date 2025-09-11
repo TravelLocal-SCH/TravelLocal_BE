@@ -1,10 +1,22 @@
 package sch.travellocal.domain.tourprogram.service;
 
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sch.travellocal.common.exception.custom.ApiException;
 import sch.travellocal.common.exception.error.ErrorCode;
+import sch.travellocal.domain.place.entity.Place;
+import sch.travellocal.domain.place.repository.PlaceRepository;
+import sch.travellocal.domain.place.service.AsyncPlaceService;
+import sch.travellocal.domain.tourprogram.dto.TourProgramDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramScheduleDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramUserDto;
 import sch.travellocal.domain.tourprogram.dto.request.SaveTourProgramRequestDto;
@@ -18,6 +30,7 @@ import sch.travellocal.upload.entity.Image;
 import sch.travellocal.upload.enums.ImageTargetType;
 import sch.travellocal.upload.service.S3Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -31,10 +44,12 @@ public class TourProgramService {
     private final TourProgramScheduleRepository tpScheduleRepository;
     private final TourProgramCountRepository tpCountRepository;
     private final TourProgramHashtagRepository tpHashtagRepository;
-    private final ReviewRepository tpReviewRepository;
-    private final WishlistRepository tpWishlistRepository;
+    private final ReviewRepository reviewRepository;
+    private final WishlistRepository wishlistRepository;
     private final ImageRepository imageRepository;
     private final S3Service s3Service;
+    private final PlaceRepository placeRepository;
+    private final AsyncPlaceService asyncPlaceService;
 
     public TourProgramDetailResponseDto saveTourProgram(SaveTourProgramRequestDto requestDto) {
 
@@ -63,17 +78,23 @@ public class TourProgramService {
 
         // 게시물에 대한 상세 스케줄 저장
         List<TourProgramSchedule> schedules = requestDto.getSchedules().stream()
-                .map(scheduleDto -> TourProgramSchedule.builder()
-                        .tourProgram(program)
-                        .day(scheduleDto.getDay())
-                        .scheduleSequence(scheduleDto.getScheduleSequence())
-                        .placeName(scheduleDto.getPlaceName())
-                        .lat(scheduleDto.getLat())
-                        .lon(scheduleDto.getLon())
-                        .placeDescription(scheduleDto.getPlaceDescription())
-                        .travelTime(scheduleDto.getTravelTime())
-                        .build())
-                .toList();
+                .map(scheduleDto -> {
+
+                    // Place 조회 or 생성(생성 시에 PlaceCount도 초기화)
+                    Place place = asyncPlaceService.getOrCreatePlaceAndInitCount(scheduleDto);
+
+                    // Schedule 생성
+                    return TourProgramSchedule.builder()
+                            .day(scheduleDto.getDay())
+                            .scheduleSequence(scheduleDto.getScheduleSequence())
+                            .placeDescription(scheduleDto.getPlaceDescription())
+                            .travelTime(scheduleDto.getTravelTime())
+                            .tourProgram(program)
+                            .place(place)
+                            .build();
+                }).toList();
+
+        // 3. Schedule 저장
         tpScheduleRepository.saveAll(schedules);
 
         tpCountRepository.save(TourProgramCount.builder()
@@ -94,14 +115,15 @@ public class TourProgramService {
                         .map(h -> h.getHashtag().getName())
                         .toList())
                 .schedules(schedules.stream()
-                        .map(s -> TourProgramScheduleDto.builder()
-                                .day(s.getDay())
-                                .scheduleSequence(s.getScheduleSequence())
-                                .placeName(s.getPlaceName())
-                                .lat(s.getLat())
-                                .lon(s.getLon())
-                                .placeDescription(s.getPlaceDescription())
-                                .travelTime(s.getTravelTime())
+                        .map(schedule -> TourProgramScheduleDto.builder()
+                                .day(schedule.getDay())
+                                .scheduleSequence(schedule.getScheduleSequence())
+                                .googlePlaceId(schedule.getPlace().getGooglePlaceId())
+                                .placeName(schedule.getPlace().getName())
+                                .lat(schedule.getPlace().getLat())
+                                .lon(schedule.getPlace().getLon())
+                                .placeDescription(schedule.getPlaceDescription())
+                                .travelTime(schedule.getTravelTime())
                                 .build())
                         .toList())
                 .user(TourProgramUserDto.builder()
@@ -110,6 +132,7 @@ public class TourProgramService {
                         .build())
                 .reviewCount(0)
                 .wishlistCount(0)
+                .isWishlisted(false)
                 .build();
     }
 
@@ -124,24 +147,21 @@ public class TourProgramService {
         TourProgramCount tourProgramCount = tpCountRepository.findByTourProgramId(tourProgramId)
                 .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "Tour Program Count Not Found"));
 
+        // 해당 게시물에 대한 유저의 위시리스트 선택 여부
+        boolean isWishlisted = wishlistRepository.existsByTourProgramAndUser(tourProgram, securityUserService.getUserByJwt());
+
         // 해시태그 get
-        /**
-         * tourProgram.getTourProgramHashtags() 시점엔 Lazy여서 쿼리 안나가지만, stream으로 객체가 필요해지는 시점에 쿼리가 트리거됨
-         * TourProgram에 대해서 n개의 TourProgramHashtag를 가져오고 각 객체에 대해서 Hashtag를 1개씩 가져오면 n + 1인가?
-         * 다만 해당 로직에서 해시태그는 각 게시물마다 3개로 제한을 두기 때문에 n이 3개까지밖에 되지 않아 성능상으로 큰 문제를 주진 않는다고 생각함.
-         * 따라서 dto projection이나 join fetch를 하지 않아도 된다고 생각이 듬
-         */
-        List<String> hashtags = tourProgram.getTourProgramHashtags().stream()
-                .map(hashtag -> hashtag.getHashtag().getName()).toList();
+        List<String> hashtags = tpHashtagRepository.findHashtagNamesByProgramId(tourProgram.getId());
 
         // 상세 프로그램 스케줄 get
-        List<TourProgramScheduleDto> tourProgramScheduleDtos = tpScheduleRepository.findAllByTourProgram(tourProgram).stream()
+        List<TourProgramScheduleDto> tourProgramScheduleDtos = tpScheduleRepository.findAllByTourProgramOrderByDayAscScheduleSequenceAsc(tourProgram).stream()
                 .map(schedule -> TourProgramScheduleDto.builder()
                         .day(schedule.getDay())
                         .scheduleSequence(schedule.getScheduleSequence())
-                        .placeName(schedule.getPlaceName())
-                        .lat(schedule.getLat())
-                        .lon(schedule.getLon())
+                        .googlePlaceId(schedule.getPlace().getGooglePlaceId())
+                        .placeName(schedule.getPlace().getName())
+                        .lat(schedule.getPlace().getLat())
+                        .lon(schedule.getPlace().getLon())
                         .placeDescription(schedule.getPlaceDescription())
                         .travelTime(schedule.getTravelTime())
                         .build())
@@ -158,6 +178,7 @@ public class TourProgramService {
                 .thumbnailUrl(tourProgram.getThumbnailUrl())
                 .wishlistCount(tourProgramCount.getWishlistCount())
                 .reviewCount(tourProgramCount.getReviewCount())
+                .isWishlisted(isWishlisted)
                 .user(TourProgramUserDto.builder()
                         .id(tourProgram.getUser().getId())
                         .name(tourProgram.getUser().getName())
@@ -169,7 +190,7 @@ public class TourProgramService {
         return responseDto;
     }
 
-    public TourProgramDetailResponseDto updateTourProgram(Long tourProgramId, SaveTourProgramRequestDto requestDto) {
+    public TourProgramDetailResponseDto updateTourProgram(Long tourProgramId, @Valid SaveTourProgramRequestDto requestDto) {
 
         User user = securityUserService.getUserByJwt();
 
@@ -180,12 +201,14 @@ public class TourProgramService {
             throw new ApiException(ErrorCode.FORBIDDEN);
         }
 
-        // 썸네일이 수정됐다면 s3에서 삭제
-        if (!existTourProgram.getThumbnailUrl().equals(requestDto.getThumbnailUrl())) {
-            s3Service.deleteFileByFileName(requestDto.getThumbnailUrl());
+        // 썸네일이 변경된 경우 s3에서 삭제
+        String oldThumbnail = existTourProgram.getThumbnailUrl();
+        String newThumbnail = requestDto.getThumbnailUrl();
+        if (oldThumbnail != null && !oldThumbnail.equals(newThumbnail)) {
+            s3Service.deleteFileByFileName(oldThumbnail);
         }
 
-        // 필드 업데이트
+        // 프로그램 기본 정보 업데이트
         existTourProgram.setTitle(requestDto.getTitle());
         existTourProgram.setDescription(requestDto.getDescription());
         existTourProgram.setGuidePrice(requestDto.getGuidePrice());
@@ -194,22 +217,37 @@ public class TourProgramService {
 
         // schedules 업데이트
         tpScheduleRepository.deleteAllByTourProgram(existTourProgram);
+        tpScheduleRepository.flush();
         List<TourProgramSchedule> schedules = requestDto.getSchedules().stream()
-                .map(scheduleDto -> TourProgramSchedule.builder()
-                        .day(scheduleDto.getDay())
-                        .scheduleSequence(scheduleDto.getScheduleSequence())
-                        .placeName(scheduleDto.getPlaceName())
-                        .lat(scheduleDto.getLat())
-                        .lon(scheduleDto.getLon())
-                        .placeDescription(scheduleDto.getPlaceDescription())
-                        .travelTime(scheduleDto.getTravelTime())
-                        .tourProgram(existTourProgram)
-                        .build())
-                .toList();
+                .map(scheduleDto -> {
+                    // 1. Place 조회 or 생성
+                    Place place = placeRepository.findByGooglePlaceId(scheduleDto.getGooglePlaceId())
+                            .orElseGet(() -> placeRepository.save(Place.builder()
+                                    .googlePlaceId(scheduleDto.getGooglePlaceId())
+                                    .name(scheduleDto.getPlaceName())
+                                    .lat(scheduleDto.getLat())
+                                    .lon(scheduleDto.getLon())
+                                    .build()
+                            ));
+
+                    // 2. Schedule 생성
+                    return TourProgramSchedule.builder()
+                            .day(scheduleDto.getDay())
+                            .scheduleSequence(scheduleDto.getScheduleSequence())
+                            .placeDescription(scheduleDto.getPlaceDescription())
+                            .travelTime(scheduleDto.getTravelTime())
+                            .tourProgram(existTourProgram)
+                            .place(place)
+                            .build();
+                }).toList();
+
+        // 3. Schedule 저장
         tpScheduleRepository.saveAll(schedules);
 
         // 해시태그 업데이트
         tpHashtagRepository.deleteAllByTourProgram(existTourProgram);
+
+        existTourProgram.getTourProgramHashtags().clear();
         for (String tag : requestDto.getHashtags()) {
             Hashtag hashtag = hashtagRepository.findByName(tag)
                     .orElseGet(() -> hashtagRepository.save(Hashtag.builder().name(tag).build()));
@@ -218,11 +256,14 @@ public class TourProgramService {
         tpHashtagRepository.saveAll(existTourProgram.getTourProgramHashtags());
 
         // tourProgram 저장
-        tpScheduleRepository.saveAll(schedules);
+        tpRepository.save(existTourProgram);
 
         // count 객체 get
         TourProgramCount count = tpCountRepository.findByTourProgramId(existTourProgram.getId())
                 .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "Tour Program Count Not Found"));
+
+        // 해당 게시물에 대한 유저의 위시리스트 선택 여부
+        boolean isWishlisted = wishlistRepository.existsByTourProgramAndUser(existTourProgram, user);
 
         // 업데이트된 상세 게시물 정보 반환
         return TourProgramDetailResponseDto.builder()
@@ -236,14 +277,15 @@ public class TourProgramService {
                         .map(h -> h.getHashtag().getName())
                         .toList())
                 .schedules(schedules.stream()
-                        .map(s -> TourProgramScheduleDto.builder()
-                                .day(s.getDay())
-                                .scheduleSequence(s.getScheduleSequence())
-                                .placeName(s.getPlaceName())
-                                .lat(s.getLat())
-                                .lon(s.getLon())
-                                .placeDescription(s.getPlaceDescription())
-                                .travelTime(s.getTravelTime())
+                        .map(schedule -> TourProgramScheduleDto.builder()
+                                .day(schedule.getDay())
+                                .scheduleSequence(schedule.getScheduleSequence())
+                                .googlePlaceId(schedule.getPlace().getGooglePlaceId())
+                                .placeName(schedule.getPlace().getName())
+                                .lat(schedule.getPlace().getLat())
+                                .lon(schedule.getPlace().getLon())
+                                .placeDescription(schedule.getPlaceDescription())
+                                .travelTime(schedule.getTravelTime())
                                 .build())
                         .toList())
                 .user(TourProgramUserDto.builder()
@@ -252,6 +294,7 @@ public class TourProgramService {
                         .build())
                 .reviewCount(count.getReviewCount())
                 .wishlistCount(count.getWishlistCount())
+                .isWishlisted(isWishlisted)
                 .build();
     }
 
@@ -280,9 +323,9 @@ public class TourProgramService {
         tpCountRepository.deleteByTourProgram(existTourProgram);
 
         // tp와 연결된 reviews와 그에 대한 Imgs 객체 삭제 로직
-        List<Review> reviews = tpReviewRepository.findAllByTourProgramId(existTourProgram.getId());
+        List<Review> reviews = reviewRepository.findAllByTourProgramId(existTourProgram.getId());
         for (Review review : reviews) {
-            List<Image> reviewImages = imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.REVIEW, review.getId());
+            List<Image> reviewImages = imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.TOUR_PROGRAM_REVIEW, review.getId());
             for (Image image : reviewImages) {
                 // s3에서 이미지 삭제
                 s3Service.deleteFileByFileName(image.getImageUrl());
@@ -291,13 +334,81 @@ public class TourProgramService {
             imageRepository.deleteAll(reviewImages);
         }
         // DB에서 reviews 삭제
-        tpReviewRepository.deleteAll(reviews);
+        reviewRepository.deleteAll(reviews);
 
         // tp와 연결된 wishlist 삭제
-        tpWishlistRepository.deleteByTourProgram(existTourProgram);
+        wishlistRepository.deleteByTourProgram(existTourProgram);
 
         // tp 삭제
         tpRepository.delete(existTourProgram);
         return "success delete tour program";
+    }
+
+    @Transactional(readOnly = true)
+    public List<TourProgramDto> getTourProgramList(List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
+
+        if (hashtags.isEmpty() || regions.isEmpty()) {
+            throw new ApiException(ErrorCode.BAD_REQUEST, "해시태그 and 지역은 1개 이상 선택해야 합니다.");
+        }
+
+        Sort sort = switch (sortOption) {
+            case "addedAsc" -> Sort.by("createdAt").ascending();
+            case "priceAsc" -> Sort.by("guidePrice").ascending();
+            case "priceDesc" -> Sort.by("guidePrice").descending();
+            case "reviewDesc" -> Sort.by("reviewCount").descending();
+            case "wishlistDesc" -> Sort.by("wishlistCount").descending();
+            default -> Sort.by("createdAt").descending();
+        };
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 동적 필터링 조건 설정: 해시태그 + 지역
+        Page<TourProgram> programPage = tpRepository.findAll((root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // 필터링을 위한 JOIN
+            Join<TourProgram, TourProgramHashtag> tphJoin = root.join("tourProgramHashtags", JoinType.INNER);
+            Join<TourProgramHashtag, Hashtag> hashtagJoin = tphJoin.join("hashtag", JoinType.INNER);
+
+            // 해시태그 조건: hashtag.name IN (:hashtags)
+            predicates.add(hashtagJoin.get("name").in(hashtags));
+            // JOIN으로 인한 중복 방지
+            query.distinct(true);
+
+            // 지역 조건: region IN (:regions)
+            predicates.add(root.get("region").in(regions));
+
+//            Join<TourProgram, TourProgramCount> countJoin = root.join("tourProgramCount", JoinType.LEFT);
+//
+//            // 동적 정렬
+//            if ("reviewDesc".equals(sortOption)) {
+//                query.orderBy(cb.desc(countJoin.get("reviewCount")));
+//            } else if ("wishlistDesc".equals(sortOption)) {
+//                query.orderBy(cb.desc(countJoin.get("wishlistCount")));
+//            } else if ("priceAsc".equals(sortOption)) {
+//                query.orderBy(cb.asc(root.get("guidePrice")));
+//            } else if ("priceDesc".equals(sortOption)) {
+//                query.orderBy(cb.desc(root.get("guidePrice")));
+//            } else {
+//                query.orderBy(cb.desc(root.get("createdAt")));
+//            }
+
+            // 모든 조건을 AND로 결합
+            return cb.and(predicates.toArray(new Predicate[0]));
+        }, pageable);
+
+        return programPage.stream()
+                .map(program -> TourProgramDto.builder()
+                        .id(program.getId())
+                        .title(program.getTitle())
+                        .description(program.getDescription())
+                        .guidePrice(program.getGuidePrice())
+                        .region(program.getRegion())
+                        .thumbnailUrl(program.getThumbnailUrl())
+                        .hashtags(program.getTourProgramHashtags().stream()
+                                .map(tph -> tph.getHashtag().getName())
+                                .toList())
+                        .build())
+                .toList();
     }
 }

@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface TourProgramScheduleRepository extends JpaRepository<TourProgramSchedule, Long> {
 
-    List<TourProgramSchedule> findAllByTourProgram(TourProgram tourProgram);
+    List<TourProgramSchedule> findAllByTourProgramOrderByDayAscScheduleSequenceAsc(TourProgram tourProgram);
 
     void deleteAllByTourProgram(TourProgram tourProgram);
 }

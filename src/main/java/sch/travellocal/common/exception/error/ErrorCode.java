@@ -31,7 +31,6 @@ public enum ErrorCode {
 
     /** ========== 403 FORBIDDEN (권한 부족) ========== **/
     FORBIDDEN(HttpStatus.FORBIDDEN, "F001", "접근이 거부되었습니다."),
-    NO_PERMISSION(HttpStatus.FORBIDDEN, "F002", "이 작업을 수행할 권한이 없습니다."),
 
     /** ========== 404 NOT_FOUND (리소스 없음) ========== **/
     NOT_FOUND(HttpStatus.NOT_FOUND, "N001", "해당 리소스를 찾을 수 없습니다."),

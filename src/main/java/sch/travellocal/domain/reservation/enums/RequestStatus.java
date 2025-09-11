@@ -1,4 +1,4 @@
-package sch.travellocal.domain.payment.enums;
+package sch.travellocal.domain.reservation.enums;
 
 public enum RequestStatus {
 
