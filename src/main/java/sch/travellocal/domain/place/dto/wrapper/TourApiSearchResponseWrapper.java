@@ -1,5 +1,6 @@
 package sch.travellocal.domain.place.dto.wrapper;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
@@ -37,9 +38,17 @@ public class TourApiSearchResponseWrapper {
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Items {
+        @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
         @JsonProperty("item")
         private List<TourApiSearchItemDto> item;
     }
+
+//    @Getter
+//    @JsonIgnoreProperties(ignoreUnknown = true)
+//    public static class TourApiSearchItemDto {
+//
+//        private String contentid;
+//    }
 
     public String getFirstContentId() {
         if (response != null
@@ -47,8 +56,9 @@ public class TourApiSearchResponseWrapper {
                 && response.getBody().getItems() != null
                 && response.getBody().getItems().getItem() != null
                 && !response.getBody().getItems().getItem().isEmpty()) {
-            return response.getBody().getItems().getItem().get(0).getContentId();
+            return response.getBody().getItems().getItem().get(0).getContentid();
         }
+        System.out.println("getFirstContentId: " + response.getBody().getItems().getItem().get(0).getContentid());
         return null;
     }
 }
