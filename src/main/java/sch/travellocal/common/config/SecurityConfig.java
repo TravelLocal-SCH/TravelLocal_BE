@@ -63,8 +63,6 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/reissue").permitAll()
                 // 채팅 테스트용 모든 경로 허용
-                //.requestMatchers("/chat/**", "/ws/**").permitAll()
-                //.anyRequest().authenticated()
                 .anyRequest().permitAll() // 필요 시 authenticated()로 변경
         );
 

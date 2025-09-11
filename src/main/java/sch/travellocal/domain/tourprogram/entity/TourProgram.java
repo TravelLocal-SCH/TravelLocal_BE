@@ -2,6 +2,7 @@ package sch.travellocal.domain.tourprogram.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import sch.travellocal.common.entity.BaseTimeEntity;
@@ -56,6 +57,12 @@ public class TourProgram extends BaseTimeEntity {
         this.tourProgramHashtags.add(tph);
         hashtag.getTourProgramHashtags().add(tph);
     }
+
+    @Formula("(SELECT c.review_count FROM tour_program_count c WHERE c.tour_program_id = id)")
+    private int reviewCount;
+
+    @Formula("(SELECT c.wishlist_count FROM tour_program_count c WHERE c.tour_program_id = id)")
+    private int wishlistCount;
 
 //    public void removeTourProgramHashtag(TourProgramHashtag tourProgramHashtag) {
 //

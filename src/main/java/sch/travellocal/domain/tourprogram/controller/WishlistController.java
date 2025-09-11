@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/tour-program/wishlist")
 @Tag(name = "TourProgram_Wishlist", description = "투어 프로그램에 대한 위시리스트 API")
 public class WishlistController {
 
@@ -28,8 +28,10 @@ public class WishlistController {
     @PostMapping("/{tourProgramId}")
     @Operation(
             summary = "투어 프로그램 id를 통한 위시리스트 추가/삭제",
-            description = "토글형태로 사용되는 API입니다. 이미 추가됐던 투어 프로그램이라면 위시리스트에서 삭제, 추가되지 않았다면 추가하는 동작을 수행합니다.\n" +
-                    "(유저에겐 위시리스트(하트버튼)이 클릭될 때마다 토글되는 단순 UI만 적용해주면 됨, 추가적인 API 요청 필요 X)"
+            description = """
+                    토글형태로 사용되는 API입니다. 이미 추가됐던 투어 프로그램이라면 위시리스트에서 삭제, 추가되지 않았다면 추가하는 동작을 수행합니다.
+                    유저에겐 위시리스트(하트버튼)이 클릭될 때마다 토글되는 단순 UI만 적용해주면 됨, 추가적인 API 요청 필요 X
+                    """
     )
     public ResponseEntity<SuccessResponse<String>> toggleWishlist(@PathVariable Long tourProgramId) {
 
