@@ -23,7 +23,7 @@ public class SocialLoginController {
     )
     public ResponseEntity<String> home(@RequestBody String helloWorld) {
 
-        if (helloWorld.equals("helloWorld")) {
+        if (!helloWorld.equals("helloWorld")) {
             return ResponseEntity.badRequest().body("you should request \"helloWorld\"");
         }
         return ResponseEntity.ok("home");
