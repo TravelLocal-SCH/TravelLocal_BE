@@ -38,7 +38,6 @@ public class TourApiSearchResponseWrapper {
     @Getter
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Items {
-
         @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
         @JsonProperty("item")
         private List<TourApiSearchItemDto> item;

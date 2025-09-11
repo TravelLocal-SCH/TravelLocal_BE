@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import sch.travellocal.domain.place.entity.Place;
 
 @Entity
 @Table(name = "tour_program_schedule",
@@ -26,17 +27,7 @@ public class TourProgramSchedule {
     @Column(name = "schedule_sequence", nullable = false)
     private int scheduleSequence;
 
-    @Column(name = "place_name", nullable = false)
-    private String placeName;
-
-    // 위도
-    @Column
-    private Double lat;
-
-    // 경도
-    @Column
-    private Double lon;
-
+    // 작성자가 작성한 장소에 대한 설명
     @Column(name = "place_description")
     private String placeDescription;
 
@@ -46,4 +37,8 @@ public class TourProgramSchedule {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tour_program_id", nullable = false)
     private TourProgram tourProgram;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_id", nullable = false)
+    private Place place;
 }
