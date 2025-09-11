@@ -34,7 +34,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PlaceService {
+public class SyncPlaceService {
 
     private final PlaceReviewService placeReviewService;
     private final PlaceCountRepository placeCountRepository;

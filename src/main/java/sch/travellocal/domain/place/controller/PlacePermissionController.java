@@ -18,7 +18,7 @@ import sch.travellocal.domain.place.service.PlacePermissionService;
 @RestController
 @RequestMapping("/api/place/permission")
 @RequiredArgsConstructor
-@Tag(name = "Place_Permission", description = "장소에 대한 권한 API")
+@Tag(name = "Place_Permission", description = "(추가) 장소에 대한 권한 API")
 public class PlacePermissionController {
 
     private final PlacePermissionService placePermissionService;
