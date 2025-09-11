@@ -3,6 +3,7 @@ package sch.travellocal.domain.tourprogram.service;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,9 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import sch.travellocal.common.exception.custom.ApiException;
 import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.place.entity.Place;
-import sch.travellocal.domain.place.repository.PlaceCountRepository;
 import sch.travellocal.domain.place.repository.PlaceRepository;
-import sch.travellocal.domain.place.service.PlaceService;
+import sch.travellocal.domain.place.service.AsyncPlaceService;
 import sch.travellocal.domain.tourprogram.dto.TourProgramDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramScheduleDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramUserDto;
@@ -49,7 +49,7 @@ public class TourProgramService {
     private final ImageRepository imageRepository;
     private final S3Service s3Service;
     private final PlaceRepository placeRepository;
-    private final PlaceService placeService;
+    private final AsyncPlaceService asyncPlaceService;
 
     public TourProgramDetailResponseDto saveTourProgram(SaveTourProgramRequestDto requestDto) {
 
@@ -81,7 +81,7 @@ public class TourProgramService {
                 .map(scheduleDto -> {
 
                     // Place 조회 or 생성(생성 시에 PlaceCount도 초기화)
-                    Place place = placeService.getOrCreatePlaceAndInitCount(scheduleDto);
+                    Place place = asyncPlaceService.getOrCreatePlaceAndInitCount(scheduleDto);
 
                     // Schedule 생성
                     return TourProgramSchedule.builder()
@@ -190,7 +190,7 @@ public class TourProgramService {
         return responseDto;
     }
 
-    public TourProgramDetailResponseDto updateTourProgram(Long tourProgramId, SaveTourProgramRequestDto requestDto) {
+    public TourProgramDetailResponseDto updateTourProgram(Long tourProgramId, @Valid SaveTourProgramRequestDto requestDto) {
 
         User user = securityUserService.getUserByJwt();
 

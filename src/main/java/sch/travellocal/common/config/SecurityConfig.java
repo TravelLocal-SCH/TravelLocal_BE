@@ -57,12 +57,12 @@ public class SecurityConfig {
         http.oauth2Login(oauth2 -> oauth2
                 .userInfoEndpoint(userInfo -> userInfo.userService(customOauth2UserService))
                 .successHandler(customSuccessHandler)
+                // .failureHandler(customFailureHandler) 추가 예정
         );
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/reissue").permitAll()
                 // 채팅 테스트용 모든 경로 허용
-                .requestMatchers("/chat/**", "/ws/**").permitAll()
                 .anyRequest().permitAll() // 필요 시 authenticated()로 변경
         );
 

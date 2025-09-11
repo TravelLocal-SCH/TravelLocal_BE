@@ -12,5 +12,6 @@ import lombok.Getter;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TourApiSearchItemDto {
 
-    private String contentId;
+    // contentid 임!! contentId로 해놓으면 tour api 파싱할 때 변수명 달라서 문제 생김... 제발!!!!
+    private String contentid;
 }

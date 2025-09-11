@@ -16,19 +16,6 @@ public class SocialLoginController {
 
     private final SocialLoginService socialLoginService;
 
-    @GetMapping("/home")
-    @Operation(
-            summary = "테스트 API",
-            description = "테스트용이며 \"helloWorld\"를 requestBody에 포함하여 요청을 보내면 \"home\"을 응답으로 제공한다."
-    )
-    public ResponseEntity<String> home(@RequestBody String helloWorld) {
-
-        if (!helloWorld.equals("helloWorld")) {
-            return ResponseEntity.badRequest().body("you should request \"helloWorld\"");
-        }
-        return ResponseEntity.ok("home");
-    }
-
     /**
      * token 재발급 API
      */

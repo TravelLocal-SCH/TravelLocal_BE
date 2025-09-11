@@ -32,7 +32,7 @@ public class TourProgramController {
             summary = "투어 프로그램 등록",
             description = "투어 프로그램을 새로 등록합니다. 저장 후에는 상세 페이지 정보를 응답으로 제공합니다."
     )
-    public ResponseEntity<SuccessResponse<TourProgramDetailResponseDto>> saveTourProgram(@RequestBody SaveTourProgramRequestDto requestDto) {
+    public ResponseEntity<SuccessResponse<TourProgramDetailResponseDto>> saveTourProgram(@Valid @RequestBody SaveTourProgramRequestDto requestDto) {
 
         return ResponseEntity.ok(SuccessResponse.ok(tourProgramService.saveTourProgram(requestDto)));
     }
@@ -82,7 +82,7 @@ public class TourProgramController {
             summary = "특정 투어 프로그램 수정",
             description = "특정 투어 프로그램의 내용을 수정합니다. 수정된 상세 페이지 정보를 응답으로 제공합니다."
     )
-    public ResponseEntity<SuccessResponse<TourProgramDetailResponseDto>> updateTourProgram(@PathVariable Long tourProgramId, @RequestBody SaveTourProgramRequestDto requestDto) {
+    public ResponseEntity<SuccessResponse<TourProgramDetailResponseDto>> updateTourProgram(@PathVariable Long tourProgramId, @Valid @RequestBody SaveTourProgramRequestDto requestDto) {
 
         return ResponseEntity.ok(SuccessResponse.ok(tourProgramService.updateTourProgram(tourProgramId, requestDto)));
     }
