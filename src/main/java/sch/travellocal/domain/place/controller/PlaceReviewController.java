@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/place/review")
-@Tag(name = "Place_Review", description = "장소에 대한 리뷰 API")
+@Tag(name = "Place_Review", description = "(장소권한 추가로 인한 수정: 응답에 verificationBadge가 추가됨) 장소에 대한 리뷰 API")
 public class PlaceReviewController {
 
     private final PlaceReviewService placeReviewService;
@@ -29,7 +29,10 @@ public class PlaceReviewController {
     @PostMapping
     @Operation(
             summary = "리뷰 등록",
-            description = "Place에 대한 리뷰 작성 권한(GPS로 해당 위치에 접근했었던게 확인됨)을 검증한 후 리뷰 정보를 저장합니다. 사용자에겐 리뷰 화면이 보여야하니 다시 리뷰 리스트 조회에 대한 요청을 해줘야 합니다."
+            description = """
+                    Place에 대한 리뷰 작성 권한(GPS로 해당 위치에 접근했었던게 확인됨)을 검증한 후 리뷰 정보를 저장합니다.<br>
+                    사용자에겐 리뷰 화면이 보여야하니 다시 리뷰 리스트 조회에 대한 요청을 해줘야 합니다.
+                    """
     )
     public ResponseEntity<SuccessResponse<List<PlaceReviewResponseDto>>> saveReview(@Valid @RequestBody SavePlaceReviewRequestDto request) {
 
