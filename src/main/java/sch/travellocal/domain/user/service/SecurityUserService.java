@@ -22,7 +22,7 @@ public class SecurityUserService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
+                .orElseThrow(() -> new ApiException(ErrorCode.TOKEN_NOT_PROVIDED, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
 
         return user;
     }

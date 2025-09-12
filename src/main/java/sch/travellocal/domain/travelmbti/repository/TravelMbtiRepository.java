@@ -11,5 +11,5 @@ import java.util.Optional;
 @Repository
 public interface TravelMbtiRepository extends JpaRepository<TravelMbti, Long> {
 
-    Optional<List<TravelMbti>> findAllByUserOrderByCreatedAtDesc(User user);
+    List<TravelMbti> findAllByUserOrderByCreatedAtDesc(User user);
 }

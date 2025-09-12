@@ -1,7 +1,6 @@
 package sch.travellocal.domain.tourprogram.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,9 +25,9 @@ import sch.travellocal.domain.user.service.SecurityUserService;
 import sch.travellocal.upload.repository.ImageRepository;
 import sch.travellocal.upload.entity.Image;
 import sch.travellocal.upload.enums.ImageTargetType;
+import sch.travellocal.upload.service.ImageService;
 import sch.travellocal.upload.service.S3Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -42,9 +41,7 @@ public class ReviewService {
     private final ImageRepository imageRepository;
     private final SecurityUserService securityUserService;
     private final S3Service s3Service;
-
-    @Value("{aws.url}")
-    private String downloadUrl;
+    private final ImageService imageService;
 
     public String saveReview(SaveReviewRequestDto request) {
 
@@ -71,23 +68,15 @@ public class ReviewService {
         // 저장하고 해당 객체 사용하기 위해 반환받음
         review = tpReviewRepository.save(review);
 
+        // 동시성 발생 가능할듯
         tpCount.setReviewCount(tpCount.getReviewCount() + 1);
         //tpCountRepository.save(tpCount);
 
         // 리뷰 업로드 이미지들 순서 보장하여 저장
-        if (request.getImageUrls() != null) {
-            List<Image> images = new ArrayList<>();
-            int seq = 0;
-            for (String url : request.getImageUrls()) {
-                images.add(Image.builder()
-                        .imageUrl(url)
-                        .sequence(seq++)
-                        .targetType(ImageTargetType.REVIEW)
-                        .targetId(review.getId())
-                        .build());
-            }
-            imageRepository.saveAll(images);
-        }
+        imageService.saveImages(ImageTargetType.TOUR_PROGRAM_REVIEW, review.getId(), request.getImageUrls());
+
+        // 현재 작성하고 사용자에게 보여질 리뷰 리스트에 대한 값을 반환하지 않아서 추가해야 함
+
         return "success save review";
     }
 
@@ -102,6 +91,7 @@ public class ReviewService {
         Sort sort  = switch (sortOption) {
             case "ratingAsc" -> Sort.by("rating").ascending();
             case "ratingDesc" -> Sort.by("rating").descending();
+            case "addedAsc" -> Sort.by("createdAt").ascending();
             default -> Sort.by("createdAt").descending();
         };
 
@@ -120,7 +110,7 @@ public class ReviewService {
                         .createdAt(review.getCreatedAt())
                         .updatedAt(review.getUpdatedAt())
                         // n+1 발생, 다만 이미지의 개수가 많지 않기에 큰 문제는 없다고 판단
-                        .imagesUrls(imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.REVIEW, review.getReviewId()).stream()
+                        .imagesUrls(imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.TOUR_PROGRAM_REVIEW, review.getReviewId()).stream()
                                 .map(Image::getImageUrl)
                                 .toList())
                         .build())
@@ -153,7 +143,7 @@ public class ReviewService {
                         .content(review.getContent())
                         .createdAt(review.getCreatedAt())
                         .updatedAt(review.getUpdatedAt())
-                        .imagesUrls(imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.REVIEW, review.getReviewId()).stream()
+                        .imagesUrls(imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.TOUR_PROGRAM_REVIEW, review.getReviewId()).stream()
                                 .map(Image::getImageUrl)
                                 .toList())
                         .build())
@@ -169,7 +159,7 @@ public class ReviewService {
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "TourProgram Review not found"));
 
         // 리뷰에 연결된 이미지 삭제
-        List<Image> images = imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.REVIEW, review.getId());
+        List<Image> images = imageRepository.findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType.TOUR_PROGRAM_REVIEW, review.getId());
         // S3에서 이미지 삭제
         for (Image image : images) {
             s3Service.deleteFileByFileName(image.getImageUrl());
