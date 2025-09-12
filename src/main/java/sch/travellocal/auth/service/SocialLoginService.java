@@ -86,7 +86,11 @@ public class SocialLoginService {
             throw new AuthException(ErrorCode.TRANSFORMATION_ERROR);
         }
         // 새 access 토큰을 헤더에 설정하고, 새 refresh 토큰을 쿠키에 저장
+
+        // Header로 10분의 만료기한을 가진 Access token 설정
         response.setHeader("Authorization", "Bearer " + accessToken);
+
+        // Cookie로 7일의 만료기한을 가진 Refresh token 설정
         response.addCookie(cookieUtil.createCookie("refresh", refreshToken, (int) REFRESH_TOKEN_TTL));
 
         System.out.println("AuthCode3 accessToken: " + accessToken);

@@ -38,15 +38,17 @@ public class ReservationService {
     private final SecurityUserService securityUserService;
 
     @Transactional
-    public Long processReservation(ReservationRequestDTO dto) {
-        User user = userRepository.findById(1L).orElseThrow();
+    public Long processReservation(ReservationRequestDTO dto, User currentUser) {
 
+        // 프로그램 조회
         TourProgram tourProgram = tourProgramRepository.findById(dto.getTourProgramId())
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 프로그램 ID"));
 
+        // 가이드
         User guide = null;
         if (dto.getGuideId() != null) {
-            guide = userRepository.findById(dto.getGuideId()).orElse(null);
+            guide = userRepository.findById(dto.getGuideId())
+                    .orElseThrow(() -> new IllegalArgumentException("가이드가 존재하지 않습니다."));
         }
 
         ReservationRequest reservation = ReservationRequest.builder()
@@ -57,7 +59,7 @@ public class ReservationService {
                 .requestStatus(RequestStatus.PENDING)
                 .totalPrice(dto.getTotalPrice())
                 .tourProgram(tourProgram)
-                .user(user)
+                .user(currentUser)
                 .guide(guide)
                 .build();
 

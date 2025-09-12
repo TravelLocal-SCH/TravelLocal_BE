@@ -18,8 +18,8 @@ public class ChatController {
 
     // 채팅방 조회
     @GetMapping("/rooms")
-    public List<ChatRoomDto> getChatRooms(@RequestParam Long userId) {
-        return chatService.getChatRooms(userId);
+    public List<ChatRoomDto> getChatRooms() {
+        return chatService.getChatRooms();  // 더 이상 userId 필요 없음
     }
 
     // 채팅방 안에 있는 메세지 내역 조회
