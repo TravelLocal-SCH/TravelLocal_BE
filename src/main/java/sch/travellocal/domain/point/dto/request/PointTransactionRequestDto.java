@@ -16,8 +16,10 @@ public class PointTransactionRequestDto {
     @NotNull
     private PointTransactionActionType actionType;
 
+    // (ex. 게시물 내용 모자이크 해제를 위해 포인트 결제를 했다면 PointTransactionSubjectType: CONTENT)
     @NotNull
     private PointTransactionSubjectType actionSubject;
 
+    // PointTransactionSubjectType에 대한 엔티티_id (ex. 게시물_id == tour_program_id)
     private Long targetId;
 }
