@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
-@Service("placeServiceTest") // 빈 이름을 PlaceServiceTest로 변경
+@Service
 @RequiredArgsConstructor
 @Transactional
 public class AsyncPlaceService { // 클래스명 변경
