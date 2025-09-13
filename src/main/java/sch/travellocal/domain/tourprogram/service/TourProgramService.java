@@ -16,6 +16,9 @@ import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.place.entity.Place;
 import sch.travellocal.domain.place.repository.PlaceRepository;
 import sch.travellocal.domain.place.service.AsyncPlaceService;
+import sch.travellocal.domain.point.enums.PointTransactionActionType;
+import sch.travellocal.domain.point.enums.PointTransactionSubjectType;
+import sch.travellocal.domain.point.repository.PointHistoryRepository;
 import sch.travellocal.domain.tourprogram.dto.TourProgramDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramScheduleDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramUserDto;
@@ -50,6 +53,7 @@ public class TourProgramService {
     private final S3Service s3Service;
     private final PlaceRepository placeRepository;
     private final AsyncPlaceService asyncPlaceService;
+    private final PointHistoryRepository pointHistoryRepository;
 
     public TourProgramDetailResponseDto saveTourProgram(SaveTourProgramRequestDto requestDto) {
 
@@ -167,6 +171,13 @@ public class TourProgramService {
                         .build())
                 .toList();
 
+        boolean pointPaidFlag =  pointHistoryRepository.existsByActionTypeAndSubjectTypeAndTargetIdAndUser(
+                PointTransactionActionType.USE,
+                PointTransactionSubjectType.CONTENT,
+                tourProgramId,
+                securityUserService.getUserByJwt()
+        );
+
         // 제공되는 data
         // 게시물 상세 정보, 작성자 정보, 리뷰/위시리스트 개수
         TourProgramDetailResponseDto responseDto = TourProgramDetailResponseDto.builder()
@@ -185,6 +196,7 @@ public class TourProgramService {
                         .build())
                 .hashtags(hashtags)
                 .schedules(tourProgramScheduleDtos)
+                .isPointPaid(pointPaidFlag)
                 .build();
 
         return responseDto;

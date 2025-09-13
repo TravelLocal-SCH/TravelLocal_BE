@@ -27,4 +27,6 @@ public class TourProgramDetailResponseDto {
     private int wishlistCount;
     // 해당 게시물에 대한 유저의 위시리스트 선택 여부
     private boolean isWishlisted;
+    // 유저가 게시물 내용을 보기 위해 포인트 결제 여부 (true라면 결제한 상태이니 모자이크 해제)
+    private boolean isPointPaid;
 }
