@@ -74,12 +74,12 @@
 
 ## 서비스 흐름도
 
-|                                       서비스 흐름도                                       |                                                                        실행 영상                                                                        |
-|:-----------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------:|
-|   <img src="./assets/images/foreigner_1.png" width="800"/>   |                                               <img src="./assets/videos/mbti-test.gif" width="180" />                                               |
-|  <img src="./assets/images/foreigner_2.png" width="800"/> |                                             <img src="./assets/videos/find-program.gif" width="180" />                                              |
-|  <img src="./assets/images/foreigner_3.png" width="800"/> |                    <img src="./assets/videos/payment.gif" width="180" /><img src="./assets/videos/calendar.gif" width="180" />                     |
-|    <img src="./assets/images/foreigner_4.png" width="800"/>    |                                              <img src="./assets/videos/GPS-review.gif" width="180" />                                               |
-|  <img src="./assets/images/korean_1.png" width="800"/> |                                                                       *추가 예정*                                                                       |
+|                                       서비스 흐름도                                       |                                                    실행 영상                                                    |
+|:-----------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------:|
+|   <img src="./assets/images/foreigner_1.png" width="800"/>   |                           <img src="./assets/videos/mbti-test.gif" width="180" />                           |
+|  <img src="./assets/images/foreigner_2.png" width="800"/> |                         <img src="./assets/videos/find-program.gif" width="180" />                          |
+|  <img src="./assets/images/foreigner_3.png" width="800"/> | <img src="./assets/videos/payment.gif" width="180" /><img src="./assets/videos/calendar.gif" width="180" /> |
+|    <img src="./assets/images/foreigner_4.png" width="800"/>    |                          <img src="./assets/videos/GPS-review.gif" width="180" />                           |
+|  <img src="./assets/images/korean_1.png" width="800"/> |                          <img src="./assets/videos/Program_out.gif" width="180" />                          |
 
 ---
