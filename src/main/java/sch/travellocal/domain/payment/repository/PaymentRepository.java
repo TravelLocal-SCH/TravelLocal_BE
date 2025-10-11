@@ -9,4 +9,6 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
     Optional<PaymentEntity> findByImpUid(String impUid);
 
     boolean existsByImpUid(String impUid);
+
+    boolean existsByReservationRequestId(Long reservationRequestId);
 }
