@@ -26,6 +26,8 @@ repositories {
 
 dependencies {
 
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0' //로그 ?? 해결
+
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'

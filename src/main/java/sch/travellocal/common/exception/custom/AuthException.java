@@ -7,4 +7,8 @@ public class AuthException extends BusinessBaseException {
     public AuthException(ErrorCode errorCode) {
         super(errorCode);
     }
+
+    public AuthException(ErrorCode errorCode, String message) {
+        super(errorCode, message);
+    }
 }
