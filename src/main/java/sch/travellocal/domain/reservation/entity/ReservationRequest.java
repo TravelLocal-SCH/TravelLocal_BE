@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @Getter
 @Setter
+@ToString
 public class ReservationRequest {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

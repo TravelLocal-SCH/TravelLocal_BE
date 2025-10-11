@@ -42,27 +42,29 @@ public class ReservationController {
     ) {
         try {
             System.out.println("✅ POST /api/reservations 호출됨");
+            System.out.println("받은 값: " + request);
 
             // 먼저 JWT에서 로그인한 사용자 정보 가져오기
             User currentUser = securityUserService.getUserByJwt();
             System.out.println("👤 JWT 유저 정보 확인 - userId: " + currentUser.getId() + ", username: " + currentUser.getUsername());
 
             ReservationRequestDTO reservationDTO = request.getReservation();
-            System.out.println("📦 예약 DTO 확인: " + reservationDTO);
+            System.out.println("📦 예약 DTO 확인: " + reservationDTO.toString());
 
-            String impUid = request.getImpUid();
-            String merchantUid = request.getMerchantUid();
-            System.out.println("💳 결제 정보 확인 - impUid: " + impUid + ", merchantUid: " + merchantUid);
+//            String impUid = request.getImpUid();
+//            String merchantUid = request.getMerchantUid();
+//            System.out.println("💳 결제 정보 확인 - impUid: " + impUid + ", merchantUid: " + merchantUid);
 
             // 예약 처리 (currentUser 전달)
             Long reservationRequestId = reservationService.processReservation(reservationDTO, currentUser);
             System.out.println("📝 예약 처리 완료 - reservationRequestId: " + reservationRequestId);
 
-            // 결제 처리
-            paymentService.processPayment(impUid, merchantUid, reservationRequestId, currentUser.getId());
-            System.out.println("💰 결제 처리 완료");
+//            // 결제 처리
+//            paymentService.processPayment(impUid, merchantUid, reservationRequestId, currentUser.getId());
+//            System.out.println("💰 결제 처리 완료");
 
-            return ResponseEntity.ok("예약 및 결제 완료");
+//            return ResponseEntity.ok("예약 및 결제 완료");
+            return ResponseEntity.ok("예약 완료");
         } catch (Exception e) {
             System.out.println("❌ 예외 발생: " + e.getMessage());
             e.printStackTrace();
