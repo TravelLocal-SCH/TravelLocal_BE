@@ -19,8 +19,10 @@ public class SecurityUserService {
      */
     public User getUserByJwt() {
 
+        System.out.println("안녕하세요");
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
+        System.out.println("Username is " + username);
+        System.out.println("안녕히가세요");
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ApiException(ErrorCode.TOKEN_NOT_PROVIDED, "로그인에 성공하였지만 DB에 username이 존재하지 않습니다."));
 

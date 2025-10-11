@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import sch.travellocal.domain.tourprogram.dto.TourProgramScheduleDto;
 
 import java.util.List;
 
+@AllArgsConstructor
 @Getter
 @NoArgsConstructor
 public class SaveTourProgramRequestDto {

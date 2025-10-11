@@ -22,7 +22,7 @@ public class PlaceController {
 
     // 프론트로부터 google place id를 받아서 장소 정보를 가져오고, 함께 해당 place에 대해 자체적으로 관리하는 리뷰, 평점, 리뷰수를 반환하는 API
     // 확장성을 위해 place에 대한 공급자명(google), place id를 받도록 설계
-    private final SyncPlaceService syncPlaceService;
+    // private final SyncPlaceService syncPlaceService;
 
     private final AsyncPlaceService asyncPlaceService;
 

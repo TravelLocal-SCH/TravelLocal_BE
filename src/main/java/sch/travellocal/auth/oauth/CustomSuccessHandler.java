@@ -12,6 +12,11 @@ import org.springframework.stereotype.Component;
 import sch.travellocal.auth.util.CookieUtil;
 import sch.travellocal.auth.util.JwtUtil;
 import sch.travellocal.auth.util.RefreshTokenHelper;
+import sch.travellocal.common.exception.custom.AuthException;
+import sch.travellocal.common.exception.error.ErrorCode;
+import sch.travellocal.domain.point.service.PointService;
+import sch.travellocal.domain.user.entity.User;
+import sch.travellocal.domain.user.repository.UserRepository;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,6 +33,8 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private ObjectMapper objectMapper;
     private final long ACCESS_TOKEN_TTL = 30 * 24 * 60 * 60; //10 * 60;
     private final long REFRESH_TOKEN_TTL = 7 * 24 * 60 * 60;
+    private final UserRepository userRepository;
+    private final PointService pointService;
 
 //    @Override
 //    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, SecurityException {
@@ -68,8 +75,18 @@ public class CustomSuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         GrantedAuthority authority = iterator.next();
         String role = authority.getAuthority();
 
+
+        // 인증된 사용자 정보 로드
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AuthException(ErrorCode.INTERNAL_SERVER_ERROR, "CustomSuccessHandler에서 사용자 정보 로드 문제 발생"));
+
+        // 첫 회원가입 시 UserPoint 유무에 따른 초기화
+        pointService.createInitialPoints(user);
+
         String accessToken = jwtUtil.createJwt("access", username, role, ACCESS_TOKEN_TTL);
         String refreshToken = jwtUtil.createJwt("refresh", username, role, REFRESH_TOKEN_TTL);
+
+
 
         // 추후에 삭제 예정
         System.out.println("accessToken: Bearer " + accessToken);

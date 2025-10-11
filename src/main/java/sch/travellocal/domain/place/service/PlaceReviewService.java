@@ -53,10 +53,10 @@ public class PlaceReviewService {
         Place place = placeRepository.findByGooglePlaceId(request.getGooglePlaceId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "place_id not found"));
 
-        // 리뷰 작성 권한 있는지 검증
-        if (!placeUserPermissionRepository.existsByUserAndPlace(user, place)) {
-            throw new ApiException(ErrorCode.FORBIDDEN, "해당 장소에 대한 리뷰 작성 권한이 없습니다.");
-        }
+//        // 리뷰 작성 권한 있는지 검증
+//        if (!placeUserPermissionRepository.existsByUserAndPlace(user, place)) {
+//            throw new ApiException(ErrorCode.FORBIDDEN, "해당 장소에 대한 리뷰 작성 권한이 없습니다.");
+//        }
 
         // 장소 리뷰 카운트 존재 유무 검증 및 가져오기
         PlaceCount placeCount = placeCountRepository.findByPlace(place)
