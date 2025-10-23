@@ -30,12 +30,12 @@ public class ReservationRequest {
     @Column(name = "total_price", nullable = false)
     private int totalPrice; // 총 결제 금액
 
+    // 여기 baseEntity 사용으로 바꿔도 될듯
     @Column(name = "guide_start_date", nullable = false)
     private LocalDateTime guideStartDate; // 가이드 시작 시간
 
     @Column(name = "guide_end_date", nullable = false)
     private LocalDateTime guideEndDate; // 가이드 종료 시간
-
 
     @Enumerated(EnumType.STRING)
     @Column(name = "request_status", nullable = false)
@@ -59,5 +59,4 @@ public class ReservationRequest {
 
     @OneToOne(mappedBy = "reservationRequest", cascade = CascadeType.ALL)
     private PaymentEntity payment;
-
 }
