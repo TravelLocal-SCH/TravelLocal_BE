@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sch.travellocal.common.response.SuccessResponse;
 import sch.travellocal.domain.tourprogram.dto.TourProgramDto;
+import sch.travellocal.domain.tourprogram.dto.request.GetMyTourProgramRequestDto;
 import sch.travellocal.domain.tourprogram.dto.request.GetTourProgramListRequestDto;
 import sch.travellocal.domain.tourprogram.dto.request.SaveTourProgramRequestDto;
 import sch.travellocal.domain.tourprogram.dto.response.TourProgramDetailResponseDto;
@@ -55,7 +56,7 @@ public class TourProgramController {
                 requestDto.getPage(),
                 requestDto.getSize(),
                 requestDto.getSortOption()
-                )));
+        )));
     }
 
     /**
@@ -99,4 +100,26 @@ public class TourProgramController {
 
         return ResponseEntity.ok(SuccessResponse.ok(tourProgramService.deleteTourProgram(tourProgramId)));
     }
+
+
+
+    /**
+     * 내가 작성한 게시물 조회 API
+     */
+
+    @GetMapping("/my")
+    public ResponseEntity<SuccessResponse<List<TourProgramDto>>> myTourPrograms(
+            @Valid GetMyTourProgramRequestDto requestDto
+    ){
+        List<TourProgramDto> tourPrograms = tourProgramService.myTourProgramList(
+                null, // hashtags는 서비스에서 사용하지 않으므로 null
+                null, // regions는 서비스에서 사용하지 않으므로 null
+                requestDto.getPage(),
+                requestDto.getSize(),
+                requestDto.getSortOption()
+        );
+
+        return ResponseEntity.ok(SuccessResponse.ok(tourPrograms));
+    }
+
 }

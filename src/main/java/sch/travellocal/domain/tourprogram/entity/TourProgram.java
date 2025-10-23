@@ -60,8 +60,8 @@ public class TourProgram extends BaseTimeEntity {
 
     // case "reviewDesc" -> Sort.by("reviewCount").descending(); 정렬 조건에 필요
     @Formula("(SELECT c.review_count FROM tour_program_count c WHERE c.tour_program_id = id)")
-    private int reviewCount;
+    private Integer reviewCount;
 
     @Formula("(SELECT c.wishlist_count FROM tour_program_count c WHERE c.tour_program_id = id)")
-    private int wishlistCount;
+    private Integer wishlistCount;
 }
