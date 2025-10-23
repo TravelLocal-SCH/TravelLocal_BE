@@ -112,29 +112,21 @@ public class ReservationService {
                 .map(r -> {
                     boolean isGuide = r.getGuide().getId().equals(currentUser.getId());
 
-                    if (isGuide) {
-                        // GUIDE 입장
-                        return new ReservationCalendarDTO(
-                                r.getId(),
-                                r.getTourProgram().getTitle(),
-                                r.getGuideStartDate(),
-                                r.getGuideEndDate(),
-                                r.getNumOfPeople(),
-                                r.getRequestStatus().name(),
-                                "GUIDE"
-                        );
-                    } else {
-                        // USER 입장
-                        return new ReservationCalendarDTO(
-                                r.getId(),
-                                r.getTourProgram().getTitle(),
-                                r.getGuideStartDate(),
-                                r.getGuideEndDate(),
-                                r.getNumOfPeople(),
-                                r.getRequestStatus().name(),
-                                "USER"
-                        );
-                    }
+                    String role = isGuide ? "GUIDE" : "USER";
+                    String otherName = isGuide
+                            ? r.getUser().getName()    // 가이드라면 예약자 이름
+                            : r.getGuide().getName();  // 예약자라면 가이드 이름
+
+                    return new ReservationCalendarDTO(
+                            r.getId(),
+                            r.getTourProgram().getTitle(),
+                            r.getGuideStartDate(),
+                            r.getGuideEndDate(),
+                            r.getNumOfPeople(),
+                            r.getRequestStatus().name(),
+                            role,
+                            otherName          // 추가 필드
+                    );
                 })
                 .collect(Collectors.toList());
 

@@ -19,6 +19,6 @@ public class ReservationCalendarDTO {
     private LocalDateTime guideEndDate;
     private int numOfPeople;
     private String requestStatus;
-
     private String role; // "GUIDE" or "USER"
+    private String otherName; // 이것만 추가 하면 된다 민성아...
 }
