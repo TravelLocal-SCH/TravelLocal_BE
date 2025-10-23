@@ -1,6 +1,5 @@
 package sch.travellocal.auth.oauth;
 
-import io.lettuce.core.AbstractRedisAsyncCommands;
 import lombok.AllArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -13,8 +12,6 @@ import sch.travellocal.auth.dto.NaverResponse;
 import sch.travellocal.auth.dto.OAuth2Response;
 import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
-import sch.travellocal.domain.point.entity.UserPoint;
-import sch.travellocal.domain.point.repository.UserPointRepository;
 import sch.travellocal.domain.user.dto.UserDTO;
 import sch.travellocal.domain.user.entity.User;
 import sch.travellocal.domain.user.enums.UserRole;
@@ -25,7 +22,6 @@ import sch.travellocal.domain.user.repository.UserRepository;
 public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
-//    private final UserPointRepository userPointRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -55,17 +51,8 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                         // 원래 권한마다 사용 가능한 기능 부여할 예정이였으나 현재는 보류
                                 .role(UserRole.GUIDE_CONSUMER)
                                 .build()
-
-                        // 회원가입 시 포인트 0으로 초기화
                 );
-
         userRepository.save(user);
-
-//        // 회원가입 시 포인트 3000원으로 초기화
-//        userPointRepository.save(UserPoint.builder()
-//                .point(3000L)
-//                .user(user)
-//                .build());
 
         return new CustomOAuth2User(
                 UserDTO.builder()
