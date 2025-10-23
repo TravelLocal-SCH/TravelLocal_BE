@@ -16,4 +16,6 @@ public class ReservationCalendarDTO {
     private LocalDateTime guideEndDate;
     private int numOfPeople;
     private String requestStatus;
+    private String role;
+    private String otherName;
 }
