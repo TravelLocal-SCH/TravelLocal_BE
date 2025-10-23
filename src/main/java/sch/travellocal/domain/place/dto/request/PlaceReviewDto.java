@@ -11,8 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 public class PlaceReviewDto {
 
-    private Long userId;
-    private String userName;
+    private Long authorId;
+    private String authorName;
 
     private Long reviewId;
     private float rating;

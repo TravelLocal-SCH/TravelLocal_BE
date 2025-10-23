@@ -24,8 +24,8 @@ public class Place {
     private String googlePlaceId;
 
     @Column(nullable = false)
-    private Double lat;
+    private double lat;
 
     @Column(nullable = false)
-    private Double lon;
+    private double lon;
 }
