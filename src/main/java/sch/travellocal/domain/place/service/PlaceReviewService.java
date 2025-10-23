@@ -180,4 +180,47 @@ public class PlaceReviewService {
     private boolean isAuthor(long currentUserId, long authorId) {
         return currentUserId == authorId;
     }
+
+    // 내가 작성한 장소에 대한 리뷰 조회 로직
+    @Transactional
+    public List<PlaceReviewDto> getMyReviews(
+            String googlePlaceId,
+            int page,
+            int size,
+            String sortOption
+    ) {
+        // 로그인한 유저 가져오기
+        User user = securityUserService.getUserByJwt();
+        if (user == null) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+
+        // 정렬 옵션 처리
+        Sort sort = Sort.by("createdAt"); // 기본 정렬
+        if ("latest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else if ("oldest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 장소 + 유저 기준 페이징 조회
+        Page<PlaceReview> reviewsPage = placeReviewRepository.findByUserAndGooglePlaceId(user, googlePlaceId, pageable);
+
+        // DTO 변환
+        return reviewsPage.stream()
+                .map(r -> PlaceReviewDto.builder()
+                        .authorId(user.getId())
+                        .authorName(user.getName())
+                        .reviewId(r.getId())
+                        .rating(r.getRating())
+                        .content(r.getContent())
+                        .createdAt(r.getCreatedAt())
+                        .updatedAt(r.getUpdatedAt())
+                        .build()
+                )
+                .toList();
+    }
+
 }

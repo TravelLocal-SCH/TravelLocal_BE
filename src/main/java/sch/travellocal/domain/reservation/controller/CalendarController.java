@@ -6,7 +6,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sch.travellocal.domain.reservation.dto.CalendarStatusDTO;
 import sch.travellocal.domain.reservation.dto.ReservationCalendarDTO;
-import sch.travellocal.domain.reservation.enums.RequestStatus;
 import sch.travellocal.domain.reservation.service.ReservationService;
 
 import java.time.LocalDate;
@@ -39,13 +38,4 @@ public class CalendarController {
         return reservationService.getMyReservations(start, end);
     }
 
-//
-//    // 가이드 입장에서의 예약 상세 내역
-//    @GetMapping("/received")
-//    public List<ReservationCalendarDTO> getReceivedReservationsAsGuide(
-//            @RequestParam LocalDateTime start,
-//            @RequestParam LocalDateTime end
-//    ) {
-//        return reservationService.getReceivedReservationsAsGuide(start, end);
-//    }
 }

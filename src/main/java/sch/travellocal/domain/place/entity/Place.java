@@ -11,7 +11,6 @@ import lombok.*;
 @Getter
 public class Place {
 
-    // 아예 googlePlaceId를 pk로 사용하는게 적절한거 같기도
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

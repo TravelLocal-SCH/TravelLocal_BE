@@ -1,6 +1,5 @@
 package sch.travellocal.domain.reservation.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,8 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -67,30 +64,6 @@ public class ReservationService {
         return reservation.getId();
     }
 
-//    // 유저가 본인의 예약 확인
-//    public List<ReservationCalendarDTO> getMyReservations(LocalDateTime start, LocalDateTime end) {
-//        User currentUser = securityUserService.getUserByJwt();
-//        System.out.println("예약 조회 시작");
-//
-//        List<ReservationRequest> reservations = reservationRepository
-//                .findByGuideAndGuideStartDateBetween(currentUser, start, end);
-//
-//        List<ReservationCalendarDTO> result = reservations.stream()
-//                .map(r -> new ReservationCalendarDTO(
-//                        r.getId(),
-//                        r.getTourProgram().getTitle(),
-//                        r.getGuideStartDate(),
-//                        r.getGuideEndDate(),
-//                        r.getNumOfPeople(),
-//                        r.getRequestStatus().name()
-//                ))
-//                .collect(Collectors.toList());
-//        System.out.println("예약 내역은요 " + result);
-//
-//        return result;
-//    }
-
-
     // 가이드가 받은 예약 확인
     public List<ReservationCalendarDTO> getMyReservations(LocalDateTime start, LocalDateTime end) {
         User currentUser = securityUserService.getUserByJwt();
@@ -104,7 +77,6 @@ public class ReservationService {
                         end
                 );
 
-        System.out.println("현재 사용자 ID: " + currentUser.getId() + " 예약 내역 조회 (엔티티)");
         reservations.forEach(r -> System.out.println(r));
 
         // DTO 변환
@@ -130,15 +102,10 @@ public class ReservationService {
                 })
                 .collect(Collectors.toList());
 
-        System.out.println("DTO 변환 후 예약 내역:");
         dtos.forEach(System.out::println);
 
         return dtos;
     }
-
-
-
-
 
     //캘린더 들어갔을 때 예약 날짜만 색깔로 표시
     public List<CalendarStatusDTO> getReservationDatesWithStatusForUser(LocalDate start, LocalDate end) {
@@ -166,7 +133,6 @@ public class ReservationService {
 
             return result;
         } catch (Exception e) {
-            System.out.println("🔥 예약 상태 조회 중 예외 발생: " + e.getMessage());
             e.printStackTrace();
             throw e;  // 또는 적절한 커스텀 예외 래핑
         }

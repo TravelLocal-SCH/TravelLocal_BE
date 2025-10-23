@@ -24,8 +24,7 @@ public class PlaceReviewController {
     private final PlaceReviewService placeReviewService;
 
     /**
-     * 리뷰 저장 API
-     * 리뷰 저장 이후 리뷰 객체를 반환해서 상세 리뷰 페이지를 보여줘야 할지, 응답 완료 메시지만 보내야 할지 고민
+     * 리뷰 저장 API 리뷰 저장 이후 리뷰 객체를 반환해서 상세 리뷰 페이지를 보여줘야 할지, 응답 완료 메시지만 보내야 할지 고민
      */
     @PostMapping
     @Operation(
@@ -35,7 +34,8 @@ public class PlaceReviewController {
                     사용자에겐 리뷰 화면이 보여야하니 다시 리뷰 리스트 조회에 대한 요청을 해줘야 합니다.
                     """
     )
-    public ResponseEntity<SuccessResponse<List<PlaceReviewResponseDto>>> saveReview(@Valid @RequestBody SavePlaceReviewRequestDto request) {
+    public ResponseEntity<SuccessResponse<List<PlaceReviewResponseDto>>> saveReview(
+            @Valid @RequestBody SavePlaceReviewRequestDto request) {
 
         List<PlaceReviewResponseDto> reviews = placeReviewService.saveReview(request);
         return ResponseEntity.ok(SuccessResponse.ok(reviews));
@@ -66,7 +66,8 @@ public class PlaceReviewController {
             summary = "리뷰 삭제",
             description = "리뷰를 삭제합니다. 사용자에겐 리뷰 화면이 보여야하니 다시 리뷰 리스트에 대한 요청을 해줘야 합니다."
     )
-    public ResponseEntity<SuccessResponse<String>> deleteReview(@RequestParam String googlePlaceId, @RequestParam Long reviewId) {
+    public ResponseEntity<SuccessResponse<String>> deleteReview(@RequestParam String googlePlaceId,
+                                                                @RequestParam Long reviewId) {
 
         return ResponseEntity.ok(SuccessResponse.ok(placeReviewService.deleteReview(googlePlaceId, reviewId)));
     }
@@ -77,11 +78,8 @@ public class PlaceReviewController {
      */
 
     /**
-     * 유저가(요청자가) 작성한 모든 리뷰 조회 API (본인의 리뷰 관리 버튼 클릭 시)
-     * jwt를 통해 user정보를 가져와 요청자의 모든 리뷰 조회
+     * 유저가(요청자가) 작성한 모든 리뷰 조회 API (본인의 리뷰 관리 버튼 클릭 시) jwt를 통해 user정보를 가져와 요청자의 모든 리뷰 조회
      */
-
-
     @GetMapping("/my")
     public ResponseEntity<SuccessResponse<List<PlaceReviewDto>>> getMyReviews(
             @RequestParam String googlePlaceId,
@@ -98,19 +96,4 @@ public class PlaceReviewController {
 
         return ResponseEntity.ok(SuccessResponse.ok(reviews));
     }
-
-
-
-
-
-//    @GetMapping
-//    @Operation(
-//            summary = "User에 대한 리뷰 리스트 조회",
-//            description = "요청에서 JWT를 통해 요청자가 작성한 리뷰 리스트를 응답으로 제공합니다."
-//    )
-//    public ResponseEntity<SuccessResponse<List<UserReviewResponseDto>>> getReviewsByUser(@Valid @ModelAttribute GetReviewsRequestDto request) {
-//
-//        List<UserReviewResponseDto> reviews = tpReviewService.getReviewsByUser(request.getPage(), request.getSize(), request.getSortOption());
-//        return ResponseEntity.ok(SuccessResponse.ok(reviews));
-//    }
 }

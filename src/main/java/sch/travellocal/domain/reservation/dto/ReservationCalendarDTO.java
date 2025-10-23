@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.sql.rowset.serial.SerialStruct;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,5 +19,5 @@ public class ReservationCalendarDTO {
     private int numOfPeople;
     private String requestStatus;
     private String role; // "GUIDE" or "USER"
-    private String otherName; // 이것만 추가 하면 된다 민성아...
+    private String otherName;
 }

@@ -25,9 +25,6 @@ repositories {
 }
 
 dependencies {
-
-    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0' //로그 ?? 해결
-
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -59,7 +56,6 @@ dependencies {
     implementation(platform("software.amazon.awssdk:bom:2.21.1"))
     implementation("software.amazon.awssdk:s3")
     implementation("software.amazon.awssdk:apache-client")
-    //implementation("software.amazon.awssdk:url-connection-client")
 
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
@@ -68,16 +64,11 @@ dependencies {
     runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.118.Final:osx-aarch_64")
 
     compileOnly 'org.projectlombok:lombok'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-}
-
-repositories {
-    mavenCentral()
-    maven { url 'https://jitpack.io' }
 }
 
 tasks.named('test') {

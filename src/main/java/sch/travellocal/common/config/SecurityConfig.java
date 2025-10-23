@@ -7,9 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -29,7 +27,6 @@ import java.util.Collections;
 
 // 기존 준선의 로컬에서 작성한 securityconfig와 이름이 겹치기에 병합 후 준선's securityconfig는 삭제 조치
 
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -41,8 +38,6 @@ public class SecurityConfig {
     private final RefreshTokenHelper refreshTokenHelper;
     private final CookieUtil cookieUtil;
     private final JwtUtil jwtUtil;
-    private final AuthenticationEntryPoint authenticationEntryPoint;
-    private final AccessDeniedHandler accessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -70,10 +65,6 @@ public class SecurityConfig {
                 .anyRequest().permitAll() // 필요 시 authenticated()로 변경
         );
 
-//        http.exceptionHandling(e -> e
-//                .authenticationEntryPoint(authenticationEntryPoint)
-//                .accessDeniedHandler(accessDeniedHandler));
-//
         http.sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         );
