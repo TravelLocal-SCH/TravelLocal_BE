@@ -43,4 +43,4 @@ application-secret.yaml
 # macOS
 .DS_Store
 .AppleDouble
-.LSOverride
+.LSOverridesrc/main/resources/application-secret.yaml
