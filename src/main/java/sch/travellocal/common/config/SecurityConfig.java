@@ -25,9 +25,6 @@ import sch.travellocal.auth.util.RefreshTokenHelper;
 import java.util.Arrays;
 import java.util.Collections;
 
-// 기존 준선의 로컬에서 작성한 securityconfig와 이름이 겹치기에 병합 후 준선's securityconfig는 삭제 조치
-
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -62,6 +59,7 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/reissue").permitAll()
+                .requestMatchers("/swagger-ui/*").permitAll()
                 // 채팅 테스트용 모든 경로 허용
                 .anyRequest().permitAll() // 필요 시 authenticated()로 변경
         );

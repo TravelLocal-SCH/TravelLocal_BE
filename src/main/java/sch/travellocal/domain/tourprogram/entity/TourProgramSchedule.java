@@ -28,6 +28,7 @@ public class TourProgramSchedule {
     private int scheduleSequence;
 
     // 작성자가 작성한 장소에 대한 설명
+    // 이거 tourprogram_description 으로 수정 예정
     @Column(name = "place_description")
     private String placeDescription;
 
