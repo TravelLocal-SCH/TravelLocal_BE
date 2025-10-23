@@ -12,6 +12,7 @@ import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.place.dto.request.GetPlaceReviewsRequestDto;
 import sch.travellocal.domain.place.dto.request.PlaceReviewDto;
 import sch.travellocal.domain.place.dto.request.SavePlaceReviewRequestDto;
+import sch.travellocal.domain.place.dto.response.AuthorDto;
 import sch.travellocal.domain.place.dto.response.PlaceReviewResponseDto;
 import sch.travellocal.domain.place.entity.Place;
 import sch.travellocal.domain.place.entity.PlaceCount;
@@ -29,7 +30,6 @@ import sch.travellocal.upload.service.ImageService;
 import sch.travellocal.upload.service.S3Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -53,11 +53,6 @@ public class PlaceReviewService {
         // place 존재 유무 검증
         Place place = placeRepository.findByGooglePlaceId(request.getGooglePlaceId())
                 .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "place_id not found"));
-
-//        // 리뷰 작성 권한 있는지 검증
-//        if (!placeUserPermissionRepository.existsByUserAndPlace(user, place)) {
-//            throw new ApiException(ErrorCode.FORBIDDEN, "해당 장소에 대한 리뷰 작성 권한이 없습니다.");
-//        }
 
         // 장소 리뷰 카운트 존재 유무 검증 및 가져오기
         PlaceCount placeCount = placeCountRepository.findByPlace(place)
@@ -89,8 +84,11 @@ public class PlaceReviewService {
         Page<PlaceReviewDto> reviewPage = placeReviewRepository.findReviewsByPlaceId(place.getId(), pageable);
         return reviewPage.stream()
                 .map(review -> PlaceReviewResponseDto.builder()
-                        .userId(review.getUserId())
-                        .name(review.getUserName())
+                        .author(AuthorDto.builder()
+                                .id(user.getId())
+                                .name(user.getName())
+                                .build())
+                        .isAuthor(true)
                         .reviewId(review.getReviewId())
                         .rating(review.getRating())
                         .content(review.getContent())
@@ -129,8 +127,11 @@ public class PlaceReviewService {
         // 리뷰 정보 반환
         return reviewPage.stream()
                 .map(review -> PlaceReviewResponseDto.builder()
-                        .userId(review.getUserId())
-                        .name(review.getUserName())
+                        .author(AuthorDto.builder()
+                                .id(review.getAuthorId())
+                                .name(review.getAuthorName())
+                                .build())
+                        .isAuthor(isAuthor(user.getId(), review.getAuthorId()))
                         .reviewId(review.getReviewId())
                         .rating(review.getRating())
                         .content(review.getContent())
@@ -176,43 +177,7 @@ public class PlaceReviewService {
         return "success delete review";
     }
 
-
-    // 내가 작성한 장소에 대한 리뷰 조회 로직
-    @Transactional
-    public List<PlaceReviewDto> getMyReviews(String googlePlaceId, int page, int size, String sortOption) {
-
-        User user = securityUserService.getUserByJwt();
-        if (user == null) {
-            throw new ApiException(ErrorCode.FORBIDDEN);
-        }
-        // 정렬 옵션 처리
-        Sort sort = Sort.by("createdAt"); // 기본 정렬
-        if ("latest".equals(sortOption)) {
-            sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        } else if ("oldest".equals(sortOption)) {
-            sort = Sort.by(Sort.Direction.ASC, "createdAt");
-        }
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        // 장소 + 유저 기준 페이징 조회
-        Page<PlaceReview> reviewsPage = placeReviewRepository.findByUserAndGooglePlaceId(user, googlePlaceId, pageable);
-
-        // DTO 변환
-        return reviewsPage.stream()
-                .map(r -> PlaceReviewDto.builder()
-                        .userId(user.getId())
-                        .userName(user.getName())
-                        .reviewId(r.getId())
-                        .rating(r.getRating())
-                        .content(r.getContent())
-                        .createdAt(r.getCreatedAt())
-                        .updatedAt(r.getUpdatedAt())
-                        .build()
-                )
-                .collect(Collectors.toList());
-
-
-
+    private boolean isAuthor(long currentUserId, long authorId) {
+        return currentUserId == authorId;
     }
 }
