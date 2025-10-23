@@ -29,6 +29,7 @@ import sch.travellocal.upload.service.ImageService;
 import sch.travellocal.upload.service.S3Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -173,5 +174,45 @@ public class PlaceReviewService {
         placeReviewRepository.delete(review);
 
         return "success delete review";
+    }
+
+
+    // 내가 작성한 장소에 대한 리뷰 조회 로직
+    @Transactional
+    public List<PlaceReviewDto> getMyReviews(String googlePlaceId, int page, int size, String sortOption) {
+
+        User user = securityUserService.getUserByJwt();
+        if (user == null) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+        // 정렬 옵션 처리
+        Sort sort = Sort.by("createdAt"); // 기본 정렬
+        if ("latest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else if ("oldest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 장소 + 유저 기준 페이징 조회
+        Page<PlaceReview> reviewsPage = placeReviewRepository.findByUserAndGooglePlaceId(user, googlePlaceId, pageable);
+
+        // DTO 변환
+        return reviewsPage.stream()
+                .map(r -> PlaceReviewDto.builder()
+                        .userId(user.getId())
+                        .userName(user.getName())
+                        .reviewId(r.getId())
+                        .rating(r.getRating())
+                        .content(r.getContent())
+                        .createdAt(r.getCreatedAt())
+                        .updatedAt(r.getUpdatedAt())
+                        .build()
+                )
+                .collect(Collectors.toList());
+
+
+
     }
 }
