@@ -12,6 +12,7 @@ import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.tourprogram.dto.ReviewDto;
 import sch.travellocal.domain.tourprogram.dto.UserReviewDto;
 import sch.travellocal.domain.tourprogram.dto.request.SaveReviewRequestDto;
+import sch.travellocal.domain.tourprogram.dto.response.AuthorDto;
 import sch.travellocal.domain.tourprogram.dto.response.ReviewResponseDto;
 import sch.travellocal.domain.tourprogram.dto.response.UserReviewResponseDto;
 import sch.travellocal.domain.tourprogram.entity.TourProgramCount;
@@ -83,6 +84,8 @@ public class ReviewService {
     @Transactional(readOnly = true)
     public List<ReviewResponseDto> getReviewsByTourProgram(Long tourProgramId, int page, int size, String sortOption) {
 
+        User user = securityUserService.getUserByJwt();
+
         if (!tpRepository.existsById(tourProgramId)) {
             throw new ApiException(ErrorCode.NOT_FOUND, "Tour Program not found");
         }
@@ -103,8 +106,11 @@ public class ReviewService {
         // 리뷰 정보 반환
         return reviewPage.stream()
                 .map(review -> ReviewResponseDto.builder()
-                        .userId(review.getUserId())
-                        .name(review.getUserName())
+                        .author(AuthorDto.builder()
+                                .id(review.getAuthorId())
+                                .name(review.getAuthorName())
+                                .build())
+                        .isAuthor(isAuthor(user.getId(), review.getAuthorId()))
                         .rating(review.getRating())
                         .content(review.getContent())
                         .createdAt(review.getCreatedAt())
@@ -176,5 +182,9 @@ public class ReviewService {
         // 리뷰 삭제
         tpReviewRepository.delete(review);
         return "success delete review";
+    }
+
+    private boolean isAuthor(long currentUserId, long authorId) {
+        return currentUserId == authorId;
     }
 }

@@ -1,5 +1,6 @@
 package sch.travellocal.domain.tourprogram.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,8 +15,9 @@ public class ReviewResponseDto {
 
     // 특정 TourProgram에 대한 Review에는 작성자의 정보가 포함되어 있어야 함
     // 유저 정보
-    private Long userId;
-    private String name;
+    private AuthorDto author;
+    @JsonProperty("isAuthor")
+    private boolean isAuthor;
 
     // 리뷰 정보
     private float rating;
