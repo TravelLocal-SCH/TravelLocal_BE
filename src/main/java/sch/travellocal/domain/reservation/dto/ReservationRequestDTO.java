@@ -1,5 +1,6 @@
 package sch.travellocal.domain.reservation.dto;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import java.time.LocalDateTime;
 
@@ -16,13 +17,12 @@ public class ReservationRequestDTO {
 
     private LocalDateTime guideEndDate; // 가이드 종료 날짜 및 시간
 
-    private Long tourProgramId; // 예약할 투어 프로그램의 ID
+    @NotNull(message = "투어 프로그램 ID는 필수 값입니다.")
+    private Long tourProgramId;
 
     private String paymentMethod; // 결제 수단 (ex: 카드, 카카오페이 등)
 
     private Long guideId;
 
     private int totalPrice; // 총 결제 금액
-
-
 }

@@ -9,5 +9,4 @@ public class ReservationAndPaymentRequestDTO {
     private ReservationRequestDTO reservation;
     private String impUid;
     private String merchantUid;
-    private Long userId;
 }
