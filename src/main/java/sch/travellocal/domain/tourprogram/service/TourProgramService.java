@@ -1,5 +1,6 @@
 package sch.travellocal.domain.tourprogram.service;
 
+import jakarta.persistence.Id;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -34,7 +35,9 @@ import sch.travellocal.upload.enums.ImageTargetType;
 import sch.travellocal.upload.service.S3Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -171,7 +174,7 @@ public class TourProgramService {
                         .build())
                 .toList();
 
-        boolean pointPaidFlag =  pointHistoryRepository.existsByActionTypeAndSubjectTypeAndTargetIdAndUser(
+        boolean pointPaidFlag = pointHistoryRepository.existsByActionTypeAndSubjectTypeAndTargetIdAndUser(
                 PointTransactionActionType.USE,
                 PointTransactionSubjectType.CONTENT,
                 tourProgramId,
@@ -423,4 +426,47 @@ public class TourProgramService {
                         .build())
                 .toList();
     }
+
+    // 내가 작성한 모든 게시물 조회
+    @Transactional
+    public List<TourProgramDto> myTourProgramList(List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
+
+        User user = securityUserService.getUserByJwt();
+
+        // 예외처리 (유저 없을 시)
+        if (user == null) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+
+        // 정렬 옵션 처리
+        Sort sort = Sort.by("createdAt"); // 기본 정렬
+        if ("latest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else if ("oldest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 유저 기준으로 페이징 조회
+        Page<TourProgram> tourProgramsPage = TourProgramRepository.findByUser(user, pageable);
+
+        // DTO 변환
+        return tourProgramsPage.stream()
+                .map(tp -> TourProgramDto.builder()
+                        .id(tp.getId())
+                        .title(tp.getTitle())
+                        .description(tp.getDescription())
+                        .guidePrice(tp.getGuidePrice())
+                        .hashtags(tp.getTourProgramHashtags().stream()
+                                .map(tph -> tph.getHashtag().getName()) // Hashtag 엔티티의 이름
+                                .collect(Collectors.toList())
+                        )
+                        .region(tp.getRegion())
+                        .thumbnailUrl(tp.getThumbnailUrl())
+                        .build()
+                )
+                .collect(Collectors.toList());
+    }
 }
+
