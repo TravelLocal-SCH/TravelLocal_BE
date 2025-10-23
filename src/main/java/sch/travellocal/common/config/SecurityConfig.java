@@ -27,7 +27,6 @@ import java.util.Collections;
 
 // 기존 준선의 로컬에서 작성한 securityconfig와 이름이 겹치기에 병합 후 준선's securityconfig는 삭제 조치
 
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor

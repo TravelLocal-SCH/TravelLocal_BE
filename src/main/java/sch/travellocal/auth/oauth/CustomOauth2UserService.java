@@ -51,10 +51,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                         // 원래 권한마다 사용 가능한 기능 부여할 예정이였으나 현재는 보류
                                 .role(UserRole.GUIDE_CONSUMER)
                                 .build()
-
-                        // 회원가입 시 포인트 0으로 초기화
                 );
-
         userRepository.save(user);
 
         return new CustomOAuth2User(

@@ -46,9 +46,6 @@ public class SocialLoginService {
         String newAccessToken = jwtUtil.createJwt("access", username, role, ACCESS_TOKEN_TTL);
         String newRefreshToken = jwtUtil.createJwt("refresh", username, role, REFRESH_TOKEN_TTL);
 
-        System.out.println("newAccessToken: " + newAccessToken);
-        System.out.println("newRefreshToken: " + newRefreshToken);
-
         // 기존 refresh 토큰을 블랙리스트에 추가 후 삭제
         refreshTokenHelper.addBlacklistRefreshToken(refreshToken);
         refreshTokenHelper.deleteRefreshToken(refreshToken);
@@ -76,8 +73,6 @@ public class SocialLoginService {
         String accessToken = "";
         String refreshToken = "";
 
-        System.out.println("getTokenByAuthCode2 tokenJson: " + tokenJson);
-
         try {
             Map<String,String> tokenMap = objectMapper.readValue(tokenJson, new TypeReference<>() {});
             accessToken = tokenMap.get("accessToken");
@@ -88,8 +83,6 @@ public class SocialLoginService {
         // 새 access 토큰을 헤더에 설정하고, 새 refresh 토큰을 쿠키에 저장
         response.setHeader("Authorization", "Bearer " + accessToken);
         response.addCookie(cookieUtil.createCookie("refresh", refreshToken, (int) REFRESH_TOKEN_TTL));
-
-        System.out.println("AuthCode3 accessToken: " + accessToken);
 
         return ResponseEntity.ok(SuccessResponse.ok("Access token reissued"));
     }

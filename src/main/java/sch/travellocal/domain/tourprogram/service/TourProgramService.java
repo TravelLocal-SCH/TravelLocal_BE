@@ -21,8 +21,8 @@ import sch.travellocal.domain.point.enums.PointTransactionSubjectType;
 import sch.travellocal.domain.point.repository.PointHistoryRepository;
 import sch.travellocal.domain.tourprogram.dto.TourProgramDto;
 import sch.travellocal.domain.tourprogram.dto.TourProgramScheduleDto;
-import sch.travellocal.domain.tourprogram.dto.TourProgramUserDto;
 import sch.travellocal.domain.tourprogram.dto.request.SaveTourProgramRequestDto;
+import sch.travellocal.domain.tourprogram.dto.response.AuthorDto;
 import sch.travellocal.domain.tourprogram.dto.response.TourProgramDetailResponseDto;
 import sch.travellocal.domain.tourprogram.entity.*;
 import sch.travellocal.domain.tourprogram.repository.*;
@@ -109,7 +109,7 @@ public class TourProgramService {
 
         // 사용자 입장에서 게시물 생성 이후 화면은 작성한 게시물이 보여지기 때문에 해당 정보 반환
         return TourProgramDetailResponseDto.builder()
-                .TourProgramId(program.getId())
+                .tourProgramId(program.getId())
                 .title(program.getTitle())
                 .region(program.getRegion())
                 .description(program.getDescription())
@@ -130,10 +130,11 @@ public class TourProgramService {
                                 .travelTime(schedule.getTravelTime())
                                 .build())
                         .toList())
-                .user(TourProgramUserDto.builder()
+                .author(AuthorDto.builder()
                         .id(user.getId())
                         .name(user.getName())
                         .build())
+                .isAuthor(true)
                 .reviewCount(0)
                 .wishlistCount(0)
                 .isWishlisted(false)
@@ -171,17 +172,22 @@ public class TourProgramService {
                         .build())
                 .toList();
 
-        boolean pointPaidFlag =  pointHistoryRepository.existsByActionTypeAndSubjectTypeAndTargetIdAndUser(
+        boolean pointPaidFlag = pointHistoryRepository.existsByActionTypeAndSubjectTypeAndTargetIdAndUser(
                 PointTransactionActionType.USE,
                 PointTransactionSubjectType.CONTENT,
                 tourProgramId,
                 securityUserService.getUserByJwt()
         );
 
+
+        User user = securityUserService.getUserByJwt();
+
+        boolean isAuthor = isAuthor(user.getId(), tourProgram.getUser().getId());
+
         // 제공되는 data
         // 게시물 상세 정보, 작성자 정보, 리뷰/위시리스트 개수
         TourProgramDetailResponseDto responseDto = TourProgramDetailResponseDto.builder()
-                .TourProgramId(tourProgram.getId())
+                .tourProgramId(tourProgram.getId())
                 .title(tourProgram.getTitle())
                 .region(tourProgram.getRegion())
                 .description(tourProgram.getDescription())
@@ -190,10 +196,11 @@ public class TourProgramService {
                 .wishlistCount(tourProgramCount.getWishlistCount())
                 .reviewCount(tourProgramCount.getReviewCount())
                 .isWishlisted(isWishlisted)
-                .user(TourProgramUserDto.builder()
+                .author(AuthorDto.builder()
                         .id(tourProgram.getUser().getId())
                         .name(tourProgram.getUser().getName())
                         .build())
+                .isAuthor(isAuthor)
                 .hashtags(hashtags)
                 .schedules(tourProgramScheduleDtos)
                 .isPointPaid(pointPaidFlag)
@@ -279,7 +286,7 @@ public class TourProgramService {
 
         // 업데이트된 상세 게시물 정보 반환
         return TourProgramDetailResponseDto.builder()
-                .TourProgramId(existTourProgram.getId())
+                .tourProgramId(existTourProgram.getId())
                 .title(existTourProgram.getTitle())
                 .region(existTourProgram.getRegion())
                 .description(existTourProgram.getDescription())
@@ -300,10 +307,11 @@ public class TourProgramService {
                                 .travelTime(schedule.getTravelTime())
                                 .build())
                         .toList())
-                .user(TourProgramUserDto.builder()
+                .author(AuthorDto.builder()
                         .id(user.getId())
                         .name(user.getName())
                         .build())
+                .isAuthor(true)
                 .reviewCount(count.getReviewCount())
                 .wishlistCount(count.getWishlistCount())
                 .isWishlisted(isWishlisted)
@@ -390,21 +398,6 @@ public class TourProgramService {
             // 지역 조건: region IN (:regions)
             predicates.add(root.get("region").in(regions));
 
-//            Join<TourProgram, TourProgramCount> countJoin = root.join("tourProgramCount", JoinType.LEFT);
-//
-//            // 동적 정렬
-//            if ("reviewDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(countJoin.get("reviewCount")));
-//            } else if ("wishlistDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(countJoin.get("wishlistCount")));
-//            } else if ("priceAsc".equals(sortOption)) {
-//                query.orderBy(cb.asc(root.get("guidePrice")));
-//            } else if ("priceDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(root.get("guidePrice")));
-//            } else {
-//                query.orderBy(cb.desc(root.get("createdAt")));
-//            }
-
             // 모든 조건을 AND로 결합
             return cb.and(predicates.toArray(new Predicate[0]));
         }, pageable);
@@ -421,6 +414,52 @@ public class TourProgramService {
                                 .map(tph -> tph.getHashtag().getName())
                                 .toList())
                         .build())
+                .toList();
+    }
+
+    private boolean isAuthor(long currentUserId, long authorId) {
+        return currentUserId == authorId;
+    }
+
+    // 내가 작성한 모든 게시물 조회
+    @Transactional
+    public List<TourProgramDto> myTourProgramList(List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
+
+        User user = securityUserService.getUserByJwt();
+
+        // 예외처리 (유저 없을 시)
+        if (user == null) {
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        }
+
+        // 정렬 옵션 처리
+        Sort sort = Sort.by("createdAt"); // 기본 정렬
+        if ("latest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        } else if ("oldest".equals(sortOption)) {
+            sort = Sort.by(Sort.Direction.ASC, "createdAt");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        // 유저 기준으로 페이징 조회
+        Page<TourProgram> tourProgramsPage = TourProgramRepository.findByUser(user, pageable);
+
+        // DTO 변환
+        return tourProgramsPage.stream()
+                .map(tp -> TourProgramDto.builder()
+                        .id(tp.getId())
+                        .title(tp.getTitle())
+                        .description(tp.getDescription())
+                        .guidePrice(tp.getGuidePrice())
+                        .hashtags(tp.getTourProgramHashtags().stream()
+                                .map(tph -> tph.getHashtag().getName()) // Hashtag 엔티티의 이름
+                                .toList()
+                        )
+                        .region(tp.getRegion())
+                        .thumbnailUrl(tp.getThumbnailUrl())
+                        .build()
+                )
                 .toList();
     }
 }

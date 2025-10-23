@@ -83,4 +83,19 @@ public class PointService {
 
         return PointBalanceResponseDto.builder().balance(userPoint.getPoint()).build();
     }
+
+    public void createInitialPoints(User user) {
+        userPointRepository.findByUser(user)
+                .ifPresentOrElse(
+                        // 이미 포인트가 있는 경우
+                        userPoint -> {},
+                        // 포인트가 없을 때만 저장
+                        () -> {
+                            userPointRepository.save(UserPoint.builder()
+                                    .point(3000L)
+                                    .user(user)
+                                    .build());
+                        }
+                );
+    }
 }

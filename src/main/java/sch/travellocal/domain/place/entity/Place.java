@@ -11,7 +11,6 @@ import lombok.*;
 @Getter
 public class Place {
 
-    // 아예 googlePlaceId를 pk로 사용하는게 적절한거 같기도
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,8 +23,8 @@ public class Place {
     private String googlePlaceId;
 
     @Column(nullable = false)
-    private Double lat;
+    private double lat;
 
     @Column(nullable = false)
-    private Double lon;
+    private double lon;
 }

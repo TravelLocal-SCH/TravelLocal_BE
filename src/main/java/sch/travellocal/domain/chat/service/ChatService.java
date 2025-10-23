@@ -62,24 +62,15 @@ public class ChatService {
 
 
     // 채팅방 목록 조회 서비스 로직
-    public List<ChatRoomDto> getChatRooms(Long otherUserId) {
-        User currentUser = securityUserService.getUserByJwt();
-        System.out.println("현재 로그인 유저 ID: " + currentUser.getId());
-        System.out.println("otherUserId: " + otherUserId);
+    public List<ChatRoomDto> getChatRooms() {
+        User currentUser = securityUserService.getUserByJwt();  // 인증된 사용자
 
-        userRepository.findById(otherUserId)
-                .orElseThrow(() -> new ApiException(ErrorCode.DATABASE_ERROR, "상대 유저를 찾을 수 없습니다."));
+        System.out.println("현재 로그인 유저 ID: " + currentUser.getId());
 
         List<ChatRoom> currentUserRooms = chatRoomRepository.findByUser(currentUser.getId());
         System.out.println("현재 사용자가 포함된 채팅방 수: " + currentUserRooms.size());
 
-        List<ChatRoom> filteredRooms = currentUserRooms.stream()
-                .filter(room -> room.getUser1().getId().equals(otherUserId) || room.getUser2().getId().equals(otherUserId))
-                .collect(Collectors.toList());
-
-        System.out.println("상대 유저가 포함된 채팅방 수: " + filteredRooms.size());
-
-        return filteredRooms.stream()
+        return currentUserRooms.stream()
                 .map(room -> ChatRoomDto.builder()
                         .id(room.getId())
                         .user1Id(room.getUser1().getId())
@@ -87,7 +78,6 @@ public class ChatService {
                         .build())
                 .collect(Collectors.toList());
     }
-
     // 메세지 내역 조회 서비스 로직
     public List<MessageDto> getMessages(Long roomId) {
         User currentUser = securityUserService.getUserByJwt();
@@ -117,8 +107,11 @@ public class ChatService {
 
     // 메세지 저장 서비스 로직
     public Message saveMessage(Long roomId, Long userId, String content) {
-        ChatRoom room = chatRoomRepository.findById(roomId).orElseThrow();
-        User user = userRepository.findById(userId).orElseThrow();
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "해당 채팅방이 존재하지 않습니다."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ApiException(ErrorCode.NOT_FOUND, "해당 유저가 존재하지 않습니다."));;
         Message message = Message.builder()
                 .chatRoom(room)
                 .user(user)

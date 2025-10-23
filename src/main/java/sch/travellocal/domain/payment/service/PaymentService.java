@@ -1,8 +1,11 @@
 package sch.travellocal.domain.payment.service;
 
+
 import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -11,10 +14,7 @@ import sch.travellocal.domain.payment.enums.PaymentStatus;
 import sch.travellocal.domain.payment.repository.PaymentRepository;
 import sch.travellocal.domain.reservation.entity.ReservationRequest;
 import sch.travellocal.domain.reservation.repository.ReservationRequestRepository;
-import sch.travellocal.domain.user.entity.User;
-import sch.travellocal.domain.user.repository.UserRepository;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -25,61 +25,71 @@ public class PaymentService {
     private final IamportClient iamportClient;
     private final PaymentRepository paymentRepository;
     private final ReservationRequestRepository reservationRequestRepository;
-    private final UserRepository userRepository;
 
     public PaymentService(@Value("${iamport.api-key}") String apiKey,
                           @Value("${iamport.api-secret}") String apiSecret,
                           PaymentRepository paymentRepository,
-                          ReservationRequestRepository reservationRequestRepository,
-                          UserRepository userRepository) {
+                          ReservationRequestRepository reservationRequestRepository) {
         this.iamportClient = new IamportClient(apiKey, apiSecret);
         this.paymentRepository = paymentRepository;
         this.reservationRequestRepository = reservationRequestRepository;
-        this.userRepository = userRepository;
     }
 
-
-    // 프론트에서 받은 결제 정보를 토대로 아임포트에 검증 요청을 하는 서비스 로직
-    public void processPayment(String impUid, String merchantUid, Long reservationRequestId, Long userId) throws Exception {
-        // 결제 내역 중복 확인
-        if (paymentRepository.existsByImpUid(impUid)) {
-            log.info("이미 처리된 결제입니다: {}", impUid);
-            return; // 예외 대신 조용히 종료하거나 필요시 기존 결제 반환 가능
+    @Transactional
+    public void processPayment(String impUid, String merchantUid, Long reservationRequestId, Long id) {
+        // 1. 이미 결제된 예약인지 체크
+        if (paymentRepository.existsByReservationRequestId(reservationRequestId)) {
+            log.info("이미 결제된 예약입니다. reservationRequestId={}", reservationRequestId);
+            return;
         }
 
-        IamportResponse<Payment> response = iamportClient.paymentByImpUid(impUid);
-
-        if (response.getResponse() == null || !"paid".equals(response.getResponse().getStatus())) {
-            throw new IllegalStateException("결제가 완료되지 않았습니다.");
+        // 2. 아임포트 결제 조회
+        Payment iamportPayment;
+        try {
+            IamportResponse<Payment> response = iamportClient.paymentByImpUid(impUid);
+            iamportPayment = response.getResponse();
+            if (iamportPayment == null || !"paid".equals(iamportPayment.getStatus())) {
+                refund(impUid, "결제가 완료되지 않았습니다.");
+            }
+        } catch (Exception e) {
+            log.error("아임포트 결제 조회 실패: {}", e.getMessage());
+            throw new IllegalStateException("결제 조회 중 오류 발생");
         }
 
-        Payment iamportPayment = response.getResponse();
-
+        // 3. 예약 정보 조회
         ReservationRequest reservationRequest = reservationRequestRepository.findById(reservationRequestId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 예약 요청이 존재하지 않습니다."));
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    refund(impUid, "예약 정보가 존재하지 않습니다.");
+                    return new IllegalStateException(); // 실제로는 refund에서 예외 발생
+                });
 
-        int expectedPrice = reservationRequest.getTotalPrice();
-        System.out.println("expectedPrice : " + expectedPrice);
-        int paidPrice = iamportPayment.getAmount().intValue();
-        System.out.println("paidPrice : " + paidPrice);
-
-        if (expectedPrice != paidPrice) {
-            throw new IllegalStateException("결제 금액이 일치하지 않습니다.");
+        // 4. 금액 검증
+        if (reservationRequest.getTotalPrice() != iamportPayment.getAmount().intValue()) {
+            refund(impUid, "결제 금액 불일치");
         }
 
+        // 5. 결제 엔티티 생성 후 저장
         PaymentEntity payment = PaymentEntity.builder()
                 .impUid(impUid)
                 .paymentMethod(iamportPayment.getPayMethod())
                 .paymentStatus(PaymentStatus.PAID)
-                .totalPrice(paidPrice)
+                .totalPrice(iamportPayment.getAmount().intValue())
                 .paidAt(LocalDateTime.ofInstant(iamportPayment.getPaidAt().toInstant(), ZoneId.systemDefault()))
                 .reservationRequest(reservationRequest)
-                .user(user)
+                .user(reservationRequest.getUser())
                 .build();
 
         paymentRepository.save(payment);
+        log.info("결제 저장 완료: reservationRequestId={}, impUid={}", reservationRequestId, impUid);
     }
 
+    private void refund(String impUid, String reason) {
+        try {
+            iamportClient.cancelPaymentByImpUid(new CancelData(impUid, true));
+            log.warn("결제 환불 처리됨. impUid={}, reason={}", impUid, reason);
+        } catch (Exception e) {
+            log.error("환불 처리 실패: impUid={}, error={}", impUid, e.getMessage());
+        }
+        throw new IllegalStateException(reason);
+    }
 }

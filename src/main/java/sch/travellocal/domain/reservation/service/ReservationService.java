@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-
 @Service
 @RequiredArgsConstructor
 public class ReservationService {
@@ -38,16 +36,17 @@ public class ReservationService {
     private final SecurityUserService securityUserService;
 
     @Transactional
-    public Long processReservation(ReservationRequestDTO dto) {
-        User user = userRepository.findById(1L).orElseThrow();
+    public Long processReservation(ReservationRequestDTO dto, User currentUser) {
 
+        // 프로그램 조회
         TourProgram tourProgram = tourProgramRepository.findById(dto.getTourProgramId())
                 .orElseThrow(() -> new IllegalArgumentException("잘못된 프로그램 ID"));
 
-        User guide = null;
-        if (dto.getGuideId() != null) {
-            guide = userRepository.findById(dto.getGuideId()).orElse(null);
-        }
+        // 가이드를 DTO에서 안 받으면 프로그램 소유자를 기본 가이드로
+        User guide = (dto.getGuideId() != null)
+                ? userRepository.findById(dto.getGuideId())
+                .orElseThrow(() -> new IllegalArgumentException("가이드가 존재하지 않습니다."))
+                : tourProgram.getUser();
 
         ReservationRequest reservation = ReservationRequest.builder()
                 .requestDate(LocalDateTime.now())
@@ -57,52 +56,56 @@ public class ReservationService {
                 .requestStatus(RequestStatus.PENDING)
                 .totalPrice(dto.getTotalPrice())
                 .tourProgram(tourProgram)
-                .user(user)
-                .guide(guide)
+                .user(currentUser)
+                .guide(tourProgram.getUser())
                 .build();
 
         reservationRepository.save(reservation);
         return reservation.getId();
     }
 
-    // 유저가 본인의 예약 확인
+    // 가이드가 받은 예약 확인
     public List<ReservationCalendarDTO> getMyReservations(LocalDateTime start, LocalDateTime end) {
         User currentUser = securityUserService.getUserByJwt();
 
+        // 내가 GUIDE인 예약 + 내가 USER인 예약 모두 조회
         List<ReservationRequest> reservations = reservationRepository
-                .findByGuideAndGuideStartDateBetween(currentUser, start, end);
+                .findByGuideIdOrUserIdAndGuideStartDateBetween(
+                        currentUser.getId(),
+                        currentUser.getId(),
+                        start,
+                        end
+                );
 
-        return reservations.stream()
-                .map(r -> new ReservationCalendarDTO(
-                        r.getId(),
-                        r.getTourProgram().getTitle(),
-                        r.getGuideStartDate(),
-                        r.getGuideEndDate(),
-                        r.getNumOfPeople(),
-                        r.getRequestStatus().name() // enum -> 문자열
-                ))
+        reservations.forEach(r -> System.out.println(r));
+
+        // DTO 변환
+        List<ReservationCalendarDTO> dtos = reservations.stream()
+                .map(r -> {
+                    boolean isGuide = r.getGuide().getId().equals(currentUser.getId());
+
+                    String role = isGuide ? "GUIDE" : "USER";
+                    String otherName = isGuide
+                            ? r.getUser().getName()    // 가이드라면 예약자 이름
+                            : r.getGuide().getName();  // 예약자라면 가이드 이름
+
+                    return new ReservationCalendarDTO(
+                            r.getId(),
+                            r.getTourProgram().getTitle(),
+                            r.getGuideStartDate(),
+                            r.getGuideEndDate(),
+                            r.getNumOfPeople(),
+                            r.getRequestStatus().name(),
+                            role,
+                            otherName          // 추가 필드
+                    );
+                })
                 .collect(Collectors.toList());
+
+        dtos.forEach(System.out::println);
+
+        return dtos;
     }
-
-    // 가이드가 받은 예약 확인
-    public List<ReservationCalendarDTO> getReceivedReservationsAsGuide(LocalDateTime start, LocalDateTime end) {
-        User currentUser = securityUserService.getUserByJwt();
-
-        List<ReservationRequest> reservations = reservationRepository
-                .findByGuideAndGuideStartDateBetween(currentUser, start, end);
-
-        return reservations.stream()
-                .map(r -> new ReservationCalendarDTO(
-                        r.getId(),
-                        r.getTourProgram().getTitle(),
-                        r.getGuideStartDate(),
-                        r.getGuideEndDate(),
-                        r.getNumOfPeople(),
-                        r.getRequestStatus().name()
-                ))
-                .collect(Collectors.toList());
-    }
-
 
     //캘린더 들어갔을 때 예약 날짜만 색깔로 표시
     public List<CalendarStatusDTO> getReservationDatesWithStatusForUser(LocalDate start, LocalDate end) {
@@ -130,7 +133,6 @@ public class ReservationService {
 
             return result;
         } catch (Exception e) {
-            System.out.println("🔥 예약 상태 조회 중 예외 발생: " + e.getMessage());
             e.printStackTrace();
             throw e;  // 또는 적절한 커스텀 예외 래핑
         }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import sch.travellocal.domain.place.dto.request.PlaceReviewDto;
 import sch.travellocal.domain.place.entity.Place;
 import sch.travellocal.domain.place.entity.PlaceReview;
+import sch.travellocal.domain.user.entity.User;
 
 import java.util.Optional;
 
@@ -25,4 +26,6 @@ public interface PlaceReviewRepository extends JpaRepository<PlaceReview, Long> 
     Optional<PlaceReview> findByIdAndPlaceAndUserId(Long placeReviewId, Place place, Long userId);
 
     boolean existsByUserIdAndPlace(Long user_id, Place place);
+
+    Page<PlaceReview> findByUserAndGooglePlaceId(User user, String googlePlaceId, Pageable pageable);
 }

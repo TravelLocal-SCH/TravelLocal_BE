@@ -11,7 +11,9 @@ public interface ReservationRequestRepository extends JpaRepository<ReservationR
 
     List<ReservationRequest> findByGuideStartDateBetween(LocalDateTime start, LocalDateTime end);
 
-    List<ReservationRequest> findByGuideAndGuideStartDateBetween(User guide, LocalDateTime start, LocalDateTime end);
+    List<ReservationRequest> findByGuideAndGuideStartDateBetween(User user, LocalDateTime start, LocalDateTime end);
 
+    List<ReservationRequest> findByUserAndGuideStartDateBetween(User guide, LocalDateTime start, LocalDateTime end);
 
+    List<ReservationRequest> findByGuideIdOrUserIdAndGuideStartDateBetween(Long id, Long id1, LocalDateTime start, LocalDateTime end);
 }
