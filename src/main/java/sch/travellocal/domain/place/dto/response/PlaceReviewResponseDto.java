@@ -7,8 +7,10 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class PlaceReviewResponseDto {

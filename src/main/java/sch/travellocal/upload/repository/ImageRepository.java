@@ -11,4 +11,6 @@ import java.util.List;
 public interface ImageRepository extends JpaRepository<Image, Long> {
 
     List<Image> findByTargetTypeAndTargetIdOrderBySequenceAsc(ImageTargetType targetType, Long targetId);
+
+    List<Image> findByTargetTypeAndTargetIdIn(ImageTargetType imageTargetType, List<Long> reviewIds);
 }
