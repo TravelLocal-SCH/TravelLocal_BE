@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import sch.travellocal.common.response.SuccessResponse;
 import sch.travellocal.domain.place.dto.request.GetPlaceReviewsRequestDto;
+import sch.travellocal.domain.place.dto.request.PlaceReviewDto;
 import sch.travellocal.domain.place.dto.request.SavePlaceReviewRequestDto;
 import sch.travellocal.domain.place.dto.response.PlaceReviewResponseDto;
 import sch.travellocal.domain.place.service.PlaceReviewService;
@@ -75,18 +76,23 @@ public class PlaceReviewController {
      * 추가해야 함
      */
 
+
     /**
      * 유저가(요청자가) 작성한 모든 리뷰 조회 API (본인의 리뷰 관리 버튼 클릭 시)
      * jwt를 통해 user정보를 가져와 요청자의 모든 리뷰 조회
      */
-//    @GetMapping
-//    @Operation(
-//            summary = "User에 대한 리뷰 리스트 조회",
-//            description = "요청에서 JWT를 통해 요청자가 작성한 리뷰 리스트를 응답으로 제공합니다."
-//    )
-//    public ResponseEntity<SuccessResponse<List<UserReviewResponseDto>>> getReviewsByUser(@Valid @ModelAttribute GetReviewsRequestDto request) {
-//
-//        List<UserReviewResponseDto> reviews = tpReviewService.getReviewsByUser(request.getPage(), request.getSize(), request.getSortOption());
-//        return ResponseEntity.ok(SuccessResponse.ok(reviews));
-//    }
+    @GetMapping("/my")
+    public ResponseEntity<SuccessResponse<List<PlaceReviewDto>>> getMyReviews(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "latest") String sortOption
+    ) {
+        List<PlaceReviewDto> reviews = placeReviewService.getMyReviews(
+                page,
+                size,
+                sortOption
+        );
+
+        return ResponseEntity.ok(SuccessResponse.ok(reviews));
+    }
 }

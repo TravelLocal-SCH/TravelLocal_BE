@@ -1,6 +1,6 @@
 package sch.travellocal.auth.oauth;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -12,16 +12,18 @@ import sch.travellocal.auth.dto.NaverResponse;
 import sch.travellocal.auth.dto.OAuth2Response;
 import sch.travellocal.common.exception.custom.AuthException;
 import sch.travellocal.common.exception.error.ErrorCode;
+import sch.travellocal.domain.point.service.PointService;
 import sch.travellocal.domain.user.dto.UserDTO;
 import sch.travellocal.domain.user.entity.User;
 import sch.travellocal.domain.user.enums.UserRole;
 import sch.travellocal.domain.user.repository.UserRepository;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CustomOauth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final PointService pointService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -53,6 +55,7 @@ public class CustomOauth2UserService extends DefaultOAuth2UserService {
                                 .build()
                 );
         userRepository.save(user);
+        pointService.createInitialPoints(user);
 
         return new CustomOAuth2User(
                 UserDTO.builder()
