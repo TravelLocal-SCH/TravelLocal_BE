@@ -1,5 +1,7 @@
 package sch.travellocal.domain.tourprogram.repository;
 
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +13,7 @@ import sch.travellocal.domain.user.entity.User;
 @Repository
 public interface TourProgramRepository extends JpaRepository<TourProgram, Long>, JpaSpecificationExecutor<TourProgram> {
 
-    static Page<TourProgram> findByUser(User user, Pageable pageable) {
-        return null;
-    }
+    Page<TourProgram> findByUser(User user, Pageable pageable);
+
+    Page<TourProgram> findByRegionIn(List<String> regions, Pageable pageable);
 }

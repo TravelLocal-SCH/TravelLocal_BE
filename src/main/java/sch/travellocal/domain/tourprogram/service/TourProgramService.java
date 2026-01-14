@@ -1,8 +1,5 @@
 package sch.travellocal.domain.tourprogram.service;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +12,7 @@ import sch.travellocal.common.exception.custom.ApiException;
 import sch.travellocal.common.exception.error.ErrorCode;
 import sch.travellocal.domain.place.entity.Place;
 import sch.travellocal.domain.place.repository.PlaceRepository;
-import sch.travellocal.domain.place.service.AsyncPlaceService;
+import sch.travellocal.domain.place.service.PlaceService;
 import sch.travellocal.domain.point.enums.PointTransactionActionType;
 import sch.travellocal.domain.point.enums.PointTransactionSubjectType;
 import sch.travellocal.domain.point.repository.PointHistoryRepository;
@@ -33,7 +30,6 @@ import sch.travellocal.upload.entity.Image;
 import sch.travellocal.upload.enums.ImageTargetType;
 import sch.travellocal.upload.service.S3Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -52,7 +48,7 @@ public class TourProgramService {
     private final ImageRepository imageRepository;
     private final S3Service s3Service;
     private final PlaceRepository placeRepository;
-    private final AsyncPlaceService asyncPlaceService;
+    private final PlaceService placeService;
     private final PointHistoryRepository pointHistoryRepository;
 
     public TourProgramDetailResponseDto saveTourProgram(SaveTourProgramRequestDto requestDto) {
@@ -85,7 +81,7 @@ public class TourProgramService {
                 .map(scheduleDto -> {
 
                     // Place 조회 or 생성(생성 시에 PlaceCount도 초기화)
-                    Place place = asyncPlaceService.getOrCreatePlaceAndInitCount(scheduleDto);
+                    Place place = placeService.getOrCreatePlaceAndInitCount(scheduleDto);
 
                     // Schedule 생성
                     return TourProgramSchedule.builder()
@@ -365,57 +361,21 @@ public class TourProgramService {
     }
 
     @Transactional(readOnly = true)
-    public List<TourProgramDto> getTourProgramList(List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
-
-        if (hashtags.isEmpty() || regions.isEmpty()) {
-            throw new ApiException(ErrorCode.BAD_REQUEST, "해시태그 and 지역은 1개 이상 선택해야 합니다.");
-        }
+    public List<TourProgramDto> getTourProgramList(
+            List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
 
         Sort sort = switch (sortOption) {
-            case "addedAsc" -> Sort.by("createdAt").ascending();
-            case "priceAsc" -> Sort.by("guidePrice").ascending();
-            case "priceDesc" -> Sort.by("guidePrice").descending();
-            case "reviewDesc" -> Sort.by("reviewCount").descending();
+            case "addedAsc"     -> Sort.by("createdAt").ascending();
+            case "priceAsc"     -> Sort.by("guidePrice").ascending();
+            case "priceDesc"    -> Sort.by("guidePrice").descending();
+            case "reviewDesc"   -> Sort.by("reviewCount").descending();
             case "wishlistDesc" -> Sort.by("wishlistCount").descending();
-            default -> Sort.by("createdAt").descending();
+            default             -> Sort.by("createdAt").descending();
         };
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        // 동적 필터링 조건 설정: 해시태그 + 지역
-        Page<TourProgram> programPage = tpRepository.findAll((root, query, cb) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            // 필터링을 위한 JOIN
-            Join<TourProgram, TourProgramHashtag> tphJoin = root.join("tourProgramHashtags", JoinType.INNER);
-            Join<TourProgramHashtag, Hashtag> hashtagJoin = tphJoin.join("hashtag", JoinType.INNER);
-
-            // 해시태그 조건: hashtag.name IN (:hashtags)
-            predicates.add(hashtagJoin.get("name").in(hashtags));
-            // JOIN으로 인한 중복 방지
-            query.distinct(true);
-
-            // 지역 조건: region IN (:regions)
-            predicates.add(root.get("region").in(regions));
-
-//            Join<TourProgram, TourProgramCount> countJoin = root.join("tourProgramCount", JoinType.LEFT);
-//
-//            // 동적 정렬
-//            if ("reviewDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(countJoin.get("reviewCount")));
-//            } else if ("wishlistDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(countJoin.get("wishlistCount")));
-//            } else if ("priceAsc".equals(sortOption)) {
-//                query.orderBy(cb.asc(root.get("guidePrice")));
-//            } else if ("priceDesc".equals(sortOption)) {
-//                query.orderBy(cb.desc(root.get("guidePrice")));
-//            } else {
-//                query.orderBy(cb.desc(root.get("createdAt")));
-//            }
-
-            // 모든 조건을 AND로 결합
-            return cb.and(predicates.toArray(new Predicate[0]));
-        }, pageable);
+        Page<TourProgram> programPage = tpRepository.findByRegionIn(regions, pageable);
 
         return programPage.stream()
                 .map(program -> TourProgramDto.builder()
@@ -437,7 +397,6 @@ public class TourProgramService {
     }
 
     // 내가 작성한 모든 게시물 조회
-    @Transactional
     public List<TourProgramDto> myTourProgramList(List<String> hashtags, List<String> regions, int page, int size, String sortOption) {
 
         User user = securityUserService.getUserByJwt();
@@ -458,7 +417,7 @@ public class TourProgramService {
         Pageable pageable = PageRequest.of(page, size, sort);
 
         // 유저 기준으로 페이징 조회
-        Page<TourProgram> tourProgramsPage = TourProgramRepository.findByUser(user, pageable);
+        Page<TourProgram> tourProgramsPage = tpRepository.findByUser(user, pageable);
 
         // DTO 변환
         return tourProgramsPage.stream()
