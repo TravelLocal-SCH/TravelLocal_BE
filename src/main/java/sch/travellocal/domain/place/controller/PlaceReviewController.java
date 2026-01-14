@@ -83,13 +83,11 @@ public class PlaceReviewController {
      */
     @GetMapping("/my")
     public ResponseEntity<SuccessResponse<List<PlaceReviewDto>>> getMyReviews(
-            @RequestParam String googlePlaceId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "latest") String sortOption
     ) {
         List<PlaceReviewDto> reviews = placeReviewService.getMyReviews(
-                googlePlaceId,
                 page,
                 size,
                 sortOption

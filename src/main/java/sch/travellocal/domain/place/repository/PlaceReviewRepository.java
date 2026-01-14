@@ -17,15 +17,14 @@ import java.util.Optional;
 public interface PlaceReviewRepository extends JpaRepository<PlaceReview, Long> {
 
     @Query("SELECT new sch.travellocal.domain.place.dto.request.PlaceReviewDto(" +
-            "r.user.id, r.user.username, r.id, r.rating, r.content, r.createdAt, r.updatedAt) " +
+            "r.user.id, r.user.name, r.id, r.rating, r.content, r.createdAt, r.updatedAt) " +
             "FROM PlaceReview r " +
             "WHERE r.place.id = :placeId")
     Page<PlaceReviewDto> findReviewsByPlaceId(@Param("placeId") Long placeId, Pageable pageable);
 
-    // 여기서 사용하는 placeId는 PlaceReview 엔티티의 ID
     Optional<PlaceReview> findByIdAndPlaceAndUserId(Long placeReviewId, Place place, Long userId);
 
     boolean existsByUserIdAndPlace(Long user_id, Place place);
 
-    Page<PlaceReview> findByUserAndGooglePlaceId(User user, String googlePlaceId, Pageable pageable);
+    Page<PlaceReview> findByUser(User user, Pageable pageable);
 }

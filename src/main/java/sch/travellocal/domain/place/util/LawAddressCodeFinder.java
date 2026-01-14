@@ -32,7 +32,6 @@ public class LawAddressCodeFinder {
     );
 
     public static LawAddressCode findSidoByName(String sidoName) {
-        System.out.println("sidoName: " + sidoName);
         for (SidoCode sido : SidoCode.values()) {
             if (sidoName != null && sidoName.contains(sido.getName())) return sido;
         }
